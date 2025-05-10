@@ -3,7 +3,6 @@ from tkinter import ttk, messagebox
 from tkcalendar import DateEntry
 from datetime import datetime, timedelta
 import database
-import config
 from tooltip import ToolTip
 
 

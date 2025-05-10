@@ -6,7 +6,6 @@ from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
 from tkinter import messagebox
-import traceback
 from openpyxl.worksheet.protection import SheetProtection
 import config
 
