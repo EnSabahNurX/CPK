@@ -1,4 +1,3 @@
-# main.py
 import os
 import tkinter as tk
 import numpy as np
@@ -10,7 +9,7 @@ from export_database import export_database_to_excel
 from report import show_report
 from utils import clean_value, parse_date
 from tooltip import ToolTip
-import database  # New import
+import database
 
 
 class ExcelToJsonConverter:
@@ -368,20 +367,53 @@ class ExcelToJsonConverter:
         filter_temp_frame = tk.Frame(self.workplace_frame)
         filter_temp_frame.grid(row=1, column=0, sticky="w", pady=5)
 
+        # Temperature Filter (Checkbuttons)
         tk.Label(filter_temp_frame, text="Filter Temperature:").pack(
             side="left", padx=(0, 5)
         )
-        self.filter_temperature_var = tk.StringVar()
-        self.filter_temperature_combobox = ttk.Combobox(
+        self.temp_all_var = tk.BooleanVar(value=True)
+        self.temp_rt_var = tk.BooleanVar(value=True)
+        self.temp_lt_var = tk.BooleanVar(value=True)
+        self.temp_ht_var = tk.BooleanVar(value=True)
+        self.selected_temperatures = ["RT", "LT", "HT"]  # Default to all
+        self.temp_all_chk = tk.Checkbutton(
             filter_temp_frame,
-            textvariable=self.filter_temperature_var,
-            state="readonly",
-            values=["All", "RT", "LT", "HT"],
-            width=10,
+            text="All",
+            variable=self.temp_all_var,
+            command=self.update_temp_checkbuttons,
+            font=("Helvetica", 10),
         )
-        self.filter_temperature_combobox.pack(side="left")
-        self.filter_temperature_combobox.set("All")
+        self.temp_all_chk.pack(side="left", padx=2)
+        ToolTip(self.temp_all_chk, "Select all temperatures")
+        self.temp_rt_chk = tk.Checkbutton(
+            filter_temp_frame,
+            text="RT",
+            variable=self.temp_rt_var,
+            font=("Helvetica", 10),
+            state="disabled",
+        )
+        self.temp_rt_chk.pack(side="left", padx=2)
+        ToolTip(self.temp_rt_chk, "Select Room Temperature (RT)")
+        self.temp_lt_chk = tk.Checkbutton(
+            filter_temp_frame,
+            text="LT",
+            variable=self.temp_lt_var,
+            font=("Helvetica", 10),
+            state="disabled",
+        )
+        self.temp_lt_chk.pack(side="left", padx=2)
+        ToolTip(self.temp_lt_chk, "Select Low Temperature (LT)")
+        self.temp_ht_chk = tk.Checkbutton(
+            filter_temp_frame,
+            text="HT",
+            variable=self.temp_ht_var,
+            font=("Helvetica", 10),
+            state="disabled",
+        )
+        self.temp_ht_chk.pack(side="left", padx=2)
+        ToolTip(self.temp_ht_chk, "Select High Temperature (HT)")
 
+        # Limiter Filter
         tk.Label(filter_temp_frame, text="Limiter:").pack(side="left", padx=(10, 5))
         self.limit_var = tk.StringVar()
         limit_values = ["All"] + [str(i) for i in range(0, 201, 1)]
@@ -394,6 +426,7 @@ class ExcelToJsonConverter:
         )
         self.limit_combobox.pack(side="left")
         self.limit_combobox.set("All")
+        ToolTip(self.limit_combobox, "Limit number of displayed tests")
 
         self.btn_apply_filters = tk.Button(
             filter_temp_frame, text="Apply Filters", command=self.apply_filters
@@ -473,6 +506,93 @@ class ExcelToJsonConverter:
 
         self.update_orders_list()
         self.root.mainloop()
+
+    def update_temp_checkbuttons(self):
+        """Update the state of temperature checkbuttons based on 'All' selection."""
+        state = "disabled" if self.temp_all_var.get() else "normal"
+        self.temp_rt_chk.config(state=state)
+        self.temp_lt_chk.config(state=state)
+        self.temp_ht_chk.config(state=state)
+        if self.temp_all_var.get():
+            self.temp_rt_var.set(True)
+            self.temp_lt_var.set(True)
+            self.temp_ht_var.set(True)
+            self.selected_temperatures = ["RT", "LT", "HT"]
+        else:
+            self.selected_temperatures = [
+                temp
+                for temp, var in [
+                    ("RT", self.temp_rt_var),
+                    ("LT", self.temp_lt_var),
+                    ("HT", self.temp_ht_var),
+                ]
+                if var.get()
+            ]
+
+    def apply_filters(self):
+        """Apply temperature and limiter filters to workplace data."""
+        limit_filter = self.limit_var.get()
+
+        # Determine selected temperatures
+        if self.temp_all_var.get():
+            self.selected_temperatures = ["RT", "LT", "HT"]
+        else:
+            self.selected_temperatures = [
+                temp
+                for temp, var in [
+                    ("RT", self.temp_rt_var),
+                    ("LT", self.temp_lt_var),
+                    ("HT", self.temp_ht_var),
+                ]
+                if var.get()
+            ]
+
+        self.list_results.delete(0, tk.END)
+        header = "Test | Inflator | Temperature | Type | Version | Order | Date"
+        self.list_results.insert(tk.END, header)
+        self.list_results.insert(tk.END, "-" * len(header))
+
+        # Check for mixed versions
+        versions = {reg["version"] for reg in self.workplace_data}
+        if len(versions) > 1:
+            messagebox.showerror(
+                "Error",
+                "Workplace contains mixed versions! Clear before applying filters.",
+            )
+            return
+
+        # If no temperatures selected, show warning and clear display
+        if not self.selected_temperatures and not self.temp_all_var.get():
+            messagebox.showwarning(
+                "Warning", "No temperatures selected. Please select at least one."
+            )
+            self.filtered_workplace_data = []
+            self.update_workplace_counters([])
+            return
+
+        # Apply filters
+        filtered_data = []
+        for reg in self.workplace_data:
+            if reg["type"] not in self.selected_temperatures:
+                continue
+            filtered_data.append(reg)
+
+        # Apply limiter
+        if limit_filter != "All":
+            limit = int(limit_filter)
+            filtered_data = filtered_data[:limit]
+
+        # Update display
+        for reg in filtered_data:
+            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg['test_date']}"
+            if reg["pressures"]:
+                line += " | Pressure data available"
+            else:
+                line += " | No pressure data"
+            self.list_results.insert(tk.END, line)
+
+        self.filtered_workplace_data = filtered_data
+        self.update_workplace_counters(filtered_data)
 
     def export_database_to_excel(self):
         export_database_to_excel(self)
@@ -608,7 +728,9 @@ class ExcelToJsonConverter:
             if key not in self.order_vars:
                 self.order_vars[key] = tk.BooleanVar()
             var = self.order_vars[key]
-            display_text = f"{idx}. Version: {version}, Order: {order}, Date: {test_date}"
+            display_text = (
+                f"{idx}. Version: {version}, Order: {order}, Date: {test_date}"
+            )
 
             row_frame = tk.Frame(self.orders_inner_frame)
             row_frame.grid(row=idx - start_idx, column=0, sticky="w", padx=5, pady=2)
@@ -638,7 +760,9 @@ class ExcelToJsonConverter:
             state=tk.NORMAL if self.current_page < self.total_pages else tk.DISABLED
         )
 
-        current_page_orders = [(version, order) for version, order, _ in paginated_orders]
+        current_page_orders = [
+            (version, order) for version, order, _ in paginated_orders
+        ]
         all_selected = all(
             self.order_vars.get(key, tk.BooleanVar(value=False)).get()
             for key in current_page_orders
@@ -727,7 +851,7 @@ class ExcelToJsonConverter:
             messagebox.showwarning("Warning", message)
 
     def send_to_workplace(self):
-        """Send selected orders to the workplace."""
+        """Send selected orders to the workplace, preventing duplicates."""
         selected_orders = [
             (version, order)
             for (version, order), var in self.order_vars.items()
@@ -739,6 +863,7 @@ class ExcelToJsonConverter:
             )
             return
 
+        # Check for version conflicts
         if self.workplace_data and self.workplace_data[0]["version"] not in set(
             version for version, _ in selected_orders
         ):
@@ -748,11 +873,33 @@ class ExcelToJsonConverter:
             )
             return
 
+        # Check for duplicate orders
+        existing_orders = {
+            (reg["version"], reg["order"]) for reg in self.workplace_data
+        }
+        duplicates = [order for order in selected_orders if order in existing_orders]
+        if duplicates:
+            duplicate_str = ", ".join(
+                f"{version}/{order}" for version, order in duplicates
+            )
+            messagebox.showwarning(
+                "Warning",
+                f"The following orders are already in the workplace: {duplicate_str}.",
+            )
+            # Filter out duplicates
+            selected_orders = [
+                order for order in selected_orders if order not in existing_orders
+            ]
+            if not selected_orders:
+                return
+
+        # Fetch data for non-duplicate orders
         new_data, message = database.get_workplace_data(self.json_file, selected_orders)
         if not new_data and message:
             messagebox.showerror("Error", message)
             return
 
+        # Add new data to workplace
         self.workplace_data.extend(new_data)
         self.update_workplace_display()
         self.update_workplace_counters()
@@ -773,56 +920,6 @@ class ExcelToJsonConverter:
                 line += " | No pressure data"
             self.list_results.insert(tk.END, line)
         self.update_workplace_counters()
-
-    def apply_filters(self):
-        """Apply temperature and limiter filters to workplace data."""
-        temp_filter = self.filter_temperature_var.get()
-        limit_filter = self.limit_var.get()
-
-        self.list_results.delete(0, tk.END)
-        header = "Test | Inflator | Temperature | Type | Version | Order | Date"
-        self.list_results.insert(tk.END, header)
-        self.list_results.insert(tk.END, "-" * len(header))
-
-        versions = {reg["version"] for reg in self.workplace_data}
-        if len(versions) > 1:
-            messagebox.showerror(
-                "Error",
-                "Workplace contains mixed versions! Clear before applying filters.",
-            )
-            return
-
-        if temp_filter == "All" and limit_filter == "All":
-            self.filtered_workplace_data = None
-            for reg in self.workplace_data:
-                line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg['test_date']}"
-                if reg["pressures"]:
-                    line += " | Pressure data available"
-                else:
-                    line += " | No pressure data"
-                self.list_results.insert(tk.END, line)
-            self.update_workplace_counters()
-            return
-
-        filtered_data = []
-        for reg in self.workplace_data:
-            if temp_filter != "All" and reg["type"] != temp_filter:
-                continue
-            filtered_data.append(reg)
-
-        if limit_filter != "All":
-            limit = int(limit_filter)
-            filtered_data = filtered_data[:limit]
-
-        for reg in filtered_data:
-            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg['test_date']}"
-            if reg["pressures"]:
-                line += " | Pressure data available"
-            else:
-                line += " | No pressure data"
-            self.list_results.insert(tk.END, line)
-        self.filtered_workplace_data = filtered_data
-        self.update_workplace_counters(filtered_data)
 
     def remove_workplace_orders_selected(self):
         """Remove selected orders from the workplace."""
