@@ -5,8 +5,9 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import json
 from datetime import datetime
-from export_utils import export_to_excel, export_to_pdf
+from export_utils import export_to_excel, export_to_pdf, adjust_column_widths
 from tooltip import ToolTip
+import traceback
 
 
 def show_report(self):
@@ -32,19 +33,6 @@ def show_report(self):
             if temp not in data_by_temp:
                 data_by_temp[temp] = []
             data_by_temp[temp].append(reg)
-
-        # Define available temperatures, sorted to prioritize RT, LT, HT
-        available_temps = sorted(
-            [temp for temp in data_by_temp if data_by_temp[temp]],
-            key=lambda x: (
-                ["RT", "LT", "HT"].index(x)
-                if x in ["RT", "LT", "HT"]
-                else len(["RT", "LT", "HT"])
-            ),
-        )
-        if not available_temps:
-            messagebox.showwarning("Warning", "No valid temperature data to report.")
-            return
 
         # Create report window
         report_win = tk.Toplevel(self.root)
@@ -189,12 +177,14 @@ def show_report(self):
 
         report_win.after(100, bind_tooltips)
 
-        # Initialize table_data and ms_points_dict
-        table_data = [[] for _ in range(3)]  # [RT, LT, HT]
+        # Store table data and ms_points for export
+        table_data = []
         ms_points_dict = {}
 
-        # Process each temperature
-        for temp in available_temps:
+        # For each temperature, plot graph and table
+        for temp in ["RT", "LT", "HT"]:
+            if temp not in data_by_temp:
+                continue
             records = data_by_temp[temp]
             versions = set(r["version"] for r in records)
             version = ", ".join(versions) if len(versions) > 1 else list(versions)[0]
@@ -212,7 +202,7 @@ def show_report(self):
             for r in records:
                 if r["pressures"]:
                     ms_points.update(r["pressures"].keys())
-            ms_points = sorted(float(ms) for ms in ms_points)
+            ms_points = sorted(int(ms) for ms in ms_points)
             ms_points_str = [str(ms) for ms in ms_points]
             ms_points_dict[temp] = ms_points_str
 
@@ -222,7 +212,7 @@ def show_report(self):
                     text="No pressure data available for this temperature.",
                     font=("Helvetica", 10),
                 ).pack(pady=10, fill=tk.BOTH, expand=True)
-                table_data[["RT", "LT", "HT"].index(temp)] = []
+                table_data.append([])  # Empty table data for this temperature
                 continue
 
             pressure_matrix = []
@@ -243,11 +233,9 @@ def show_report(self):
                 with open(self.json_file, "r", encoding="utf-8") as f:
                     data_json = json.load(f)
                 sample_order = records[0]["order"]
-                limits = (
-                    data_json[version][sample_order]["temperatures"]
-                    .get(temp, {})
-                    .get("limits", {})
-                )
+                limits = data_json[version][sample_order]["temperatures"][temp][
+                    "limits"
+                ]
                 max_dict = limits.get("maximums", {})
                 min_dict = limits.get("minimums", {})
                 limits_max = [max_dict.get(str(ms), np.nan) for ms in ms_points]
@@ -404,13 +392,18 @@ def show_report(self):
 
             table.grid(row=1, column=0, sticky="nsew", pady=5)
 
-            # Store table data in the correct index
-            temp_idx = ["RT", "LT", "HT"].index(temp)
-            table_data[temp_idx] = [
-                ("Maximum", format_row(limits_max)),
-                ("Mean", format_row(mean)),
-                ("Minimum", format_row(limits_min)),
-            ]
+            table_data.append(
+                [
+                    ("Maximum", format_row(limits_max)),
+                    ("Mean", format_row(mean)),
+                    ("Minimum", format_row(limits_min)),
+                ]
+            )
+
+        # Ensure table_data has entries for all temperatures
+        for temp in ["RT", "LT", "HT"]:
+            if temp not in data_by_temp and len(table_data) < 3:
+                table_data.append([])
 
         report_win.mainloop()
     except Exception as e:
