@@ -38,6 +38,9 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
             bottom=Side(style="thin"),
         )
         bold_font = Font(bold=True)
+        time_fill = PatternFill(
+            start_color="F0F0F0", end_color="F0F0F0", fill_type="solid"
+        )
         max_fill = PatternFill(
             start_color="FFCCCC", end_color="FFCCCC", fill_type="solid"
         )
@@ -50,6 +53,8 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
 
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"report_{timestamp}.xlsx"
+
+        pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
 
         for idx, temp in enumerate(["RT", "LT", "HT"]):
             if temp not in data_by_temp:
@@ -71,26 +76,30 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
                     cell.font = bold_font
                     cell.border = thin_border
 
-            ms_points_str = ms_points_dict.get(temp, [])
-            ws.append([""] + ms_points_str)
-
-            header_row = 5
-            for col_idx, ms in enumerate([""] + ms_points_str, 1):
+            # Write pressure points as headers
+            ws.append(pressure_points)
+            header_row = ws.max_row
+            for col_idx, pk in enumerate(pressure_points, 1):
                 cell = ws.cell(row=header_row, column=col_idx)
-                cell.value = ms
                 cell.alignment = center_alignment
                 cell.font = bold_font
                 cell.border = thin_border
 
+            # Write table data
             for row_idx, (row_label, row_data) in enumerate(
                 table_data[idx], start=header_row + 1
             ):
+                row_data = row_data[
+                    : len(pressure_points)
+                ]  # Truncate to match pressure_points
                 ws.append([row_label] + row_data)
                 for col_idx in range(1, len(row_data) + 2):
                     cell = ws.cell(row=row_idx, column=col_idx)
                     cell.alignment = center_alignment
                     cell.border = thin_border
-                    if row_label == "Maximum (bar)":
+                    if row_label == "Time (ms)":
+                        cell.fill = time_fill
+                    elif row_label == "Maximum (bar)":
                         cell.fill = max_fill
                     elif row_label == "Mean (bar)":
                         cell.fill = mean_fill
@@ -99,20 +108,20 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
 
             ws.append([])
             ws.append(["Inflator Data"])
-            ws.append(["Inflator No"] + ms_points_str)
+            ws.append(pressure_points)
 
             inflator_header_row = ws.max_row
-            for col_idx, ms in enumerate(["Inflator No"] + ms_points_str, 1):
+            for col_idx, pk in enumerate(pressure_points, 1):
                 cell = ws.cell(row=inflator_header_row, column=col_idx)
-                cell.value = ms
                 cell.alignment = center_alignment
                 cell.font = bold_font
                 cell.border = thin_border
 
+            ms_points_str = ms_points_dict.get(temp, [])
             for r in records:
                 if r["pressures"]:
                     row = [str(r["inflator_no"])]
-                    for ms in ms_points_str:
+                    for ms in ms_points_str[: len(pressure_points)]:
                         val = r["pressures"].get(ms, np.nan)
                         row.append(f"{val:.2f}" if not np.isnan(val) else "-")
                     ws.append(row)
@@ -201,22 +210,19 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             ha="center",
         )
 
-        # Create nine subplots: three for graphs, three for stat tables, three for time tables
+        # Create six subplots: graph and table for each temperature
         axes = fig.subplots(
-            9,
+            6,
             1,
-            gridspec_kw={
-                "height_ratios": [2.5, 0.7, 0.3, 2.5, 0.7, 0.3, 2.5, 0.7, 0.3]
-            },
+            gridspec_kw={"height_ratios": [2.5, 1, 2.5, 1, 2.5, 1]},
         )
         axes = axes.flatten()  # Ensure axes is a flat list
 
         pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
 
         for idx, temp in enumerate(available_temps):
-            ax_graph = axes[idx * 3]
-            ax_stat_table = axes[idx * 3 + 1]
-            ax_time_table = axes[idx * 3 + 2]
+            ax_graph = axes[idx * 2]
+            ax_table = axes[idx * 2 + 1]
 
             records = data_by_temp[temp]
             versions = set(r["version"] for r in records)
@@ -226,8 +232,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             ms_points = ms_points_dict.get(temp, [])
             ms_points_str = [str(ms) for ms in ms_points]
             if not ms_points_str:
-                ax_stat_table.axis("off")
-                ax_time_table.axis("off")
+                ax_table.axis("off")
                 ax_graph.axis("off")
                 continue
 
@@ -327,63 +332,40 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             def format_row(row):
                 return [f"{v:.2f}" if not np.isnan(v) else "-" for v in row]
 
-            # Statistical Table
+            # Combined Table (Time + Statistical)
             temp_idx = ["RT", "LT", "HT"].index(temp)
-            stat_table_data = []
-            stat_row_labels = []
-            stat_cell_colors = []
+            table_cell_data = []
+            table_row_labels = []
+            table_cell_colors = []
             if temp_idx < len(table_data) and table_data[temp_idx]:
-                for label, values in table_data[temp_idx][:3]:  # Only stat rows
-                    stat_table_data.append(values[: len(pressure_points)])
-                    stat_row_labels.append(label)
-                    if label == "Maximum (bar)":
-                        stat_cell_colors.append(["#ffcccc"] * len(pressure_points))
+                for label, values in table_data[temp_idx]:
+                    table_cell_data.append(values[: len(pressure_points)])
+                    table_row_labels.append(label)
+                    if label == "Time (ms)":
+                        table_cell_colors.append(["#f0f0f0"] * len(pressure_points))
+                    elif label == "Maximum (bar)":
+                        table_cell_colors.append(["#ffcccc"] * len(pressure_points))
                     elif label == "Mean (bar)":
-                        stat_cell_colors.append(["#ccffcc"] * len(pressure_points))
+                        table_cell_colors.append(["#ccffcc"] * len(pressure_points))
                     elif label == "Minimum (bar)":
-                        stat_cell_colors.append(["#cce6ff"] * len(pressure_points))
+                        table_cell_colors.append(["#cce6ff"] * len(pressure_points))
 
-            stat_table = ax_stat_table.table(
-                cellText=stat_table_data,
-                rowLabels=stat_row_labels,
+            table = ax_table.table(
+                cellText=table_cell_data,
+                rowLabels=table_row_labels,
                 colLabels=pressure_points,
-                cellColours=stat_cell_colors,
+                cellColours=table_cell_colors,
                 cellLoc="center",
                 loc="center",
                 bbox=[0.05, 0, 0.95, 1],
             )
-            stat_table.auto_set_font_size(False)
-            stat_table.set_fontsize(5)
-            stat_table.scale(1, 1.1)
-            ax_stat_table.axis("off")
-
-            # Time Table
-            time_table_data = []
-            time_row_labels = []
-            time_cell_colors = []
-            if temp_idx < len(table_data) and table_data[temp_idx]:
-                time_label = table_data[temp_idx][3][0]  # "Time (ms)"
-                time_values = table_data[temp_idx][3][1][: len(pressure_points)]
-                time_table_data.append(time_values)
-                time_row_labels.append(time_label)
-                time_cell_colors.append(["#f0f0f0"] * len(pressure_points))
-
-            time_table = ax_time_table.table(
-                cellText=time_table_data,
-                rowLabels=time_row_labels,
-                colLabels=pressure_points,
-                cellColours=time_cell_colors,
-                cellLoc="center",
-                loc="center",
-                bbox=[0.05, 0, 0.95, 1],
-            )
-            time_table.auto_set_font_size(False)
-            time_table.set_fontsize(5)
-            time_table.scale(1, 1.1)
-            ax_time_table.axis("off")
+            table.auto_set_font_size(False)
+            table.set_fontsize(5)
+            table.scale(1, 1.1)
+            ax_table.axis("off")
 
         # Turn off unused subplots
-        for idx in range(num_temps * 3, 9):
+        for idx in range(num_temps * 2, 6):
             axes[idx].axis("off")
 
         fig.text(
