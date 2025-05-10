@@ -57,7 +57,7 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
             start_color="FFCCCC", end_color="FFCCCC", fill_type="solid"
         )
         mean_fill = PatternFill(
-            start_color="CCFFCC", end_color="CCFFCC", fill_type="solid"
+            start_color="7CE04A", end_color="7CE04A", fill_type="solid"
         )
         min_fill = PatternFill(
             start_color="CCE6FF", end_color="CCE6FF", fill_type="solid"
@@ -311,7 +311,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             ax_graph.plot(
                 ms_points,
                 mean,
-                color="#2ca02c",
+                color="#7CE04A",
                 linewidth=2,
                 label="Mean",
                 linestyle="-",
@@ -352,7 +352,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
                     elif label == "Maximum (bar)":
                         table_cell_colors.append(["#ffcccc"] * len(pressure_points))
                     elif label == "Mean (bar)":
-                        table_cell_colors.append(["#ccffcc"] * len(pressure_points))
+                        table_cell_colors.append(["#7CE04A"] * len(pressure_points))
                     elif label == "Minimum (bar)":
                         table_cell_colors.append(["#cce6ff"] * len(pressure_points))
 

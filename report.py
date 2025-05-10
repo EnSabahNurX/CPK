@@ -310,7 +310,7 @@ def show_report(self):
             ax.plot(
                 ms_points,
                 mean,
-                color="#2ca02c",
+                color="#7CE04A",
                 linewidth=2.5,
                 label="Mean",
                 linestyle="-",
@@ -360,7 +360,7 @@ def show_report(self):
                 ax.plot(
                     ms_points,
                     mean,
-                    color="#2ca02c",
+                    color="#7CE04A",
                     linewidth=2.5,
                     label="Mean",
                     linestyle="-",
@@ -425,7 +425,7 @@ def show_report(self):
 
             table.tag_configure("time", background="#f0f0f0")
             table.tag_configure("max", background="#ffcccc")
-            table.tag_configure("mean", background="#ccffcc")
+            table.tag_configure("mean", background="#7CE04A")
             table.tag_configure("min", background="#cce6ff")
 
             style = ttk.Style()
