@@ -373,11 +373,17 @@ def show_report(self):
             canvas_fig.get_tk_widget().grid(row=0, column=0, sticky="nsew", pady=5)
             temp_frame.rowconfigure(0, weight=3)
             temp_frame.rowconfigure(1, weight=1)
+            temp_frame.rowconfigure(2, weight=1)
 
-            # Table
+            # Statistical Table
             table = ttk.Treeview(
-                temp_frame, columns=ms_points_str, show="headings", height=3
+                temp_frame,
+                columns=["Parameter"] + ms_points_str,
+                show="headings",
+                height=3,
             )
+            table.heading("Parameter", text="Parameter")
+            table.column("Parameter", anchor="w", width=150, stretch=False)
             for ms in ms_points_str:
                 table.heading(ms, text=ms)
                 table.column(ms, anchor="center", stretch=True)
@@ -385,9 +391,21 @@ def show_report(self):
             def format_row(row):
                 return [f"{v:.2f}" if not np.isnan(v) else "-" for v in row]
 
-            table.insert("", "end", values=format_row(limits_max), tags=("max",))
-            table.insert("", "end", values=format_row(mean), tags=("mean",))
-            table.insert("", "end", values=format_row(limits_min), tags=("min",))
+            table.insert(
+                "",
+                "end",
+                values=["Maximum (bar)"] + format_row(limits_max),
+                tags=("max",),
+            )
+            table.insert(
+                "", "end", values=["Mean (bar)"] + format_row(mean), tags=("mean",)
+            )
+            table.insert(
+                "",
+                "end",
+                values=["Minimum (bar)"] + format_row(limits_min),
+                tags=("min",),
+            )
 
             table.tag_configure("max", background="#ffcccc")
             table.tag_configure("mean", background="#ccffcc")
@@ -400,7 +418,9 @@ def show_report(self):
             def update_table_columns(event=None):
                 if not temp_frame.winfo_exists():
                     return
-                frame_width = temp_frame.winfo_width()
+                frame_width = (
+                    temp_frame.winfo_width() - 150
+                )  # Subtract Parameter column width
                 num_cols = len(ms_points_str)
                 col_width = max(50, int(frame_width / num_cols * 0.98))
                 for ms in ms_points_str:
@@ -411,10 +431,54 @@ def show_report(self):
 
             table.grid(row=1, column=0, sticky="nsew", pady=5)
 
+            # Time Table with Pressure Points Header
+            pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
+            if len(ms_points_str) > len(pressure_points):
+                ms_points_str = ms_points_str[: len(pressure_points)]
+            elif len(ms_points_str) < len(pressure_points):
+                ms_points_str.extend(
+                    ["N/A"] * (len(pressure_points) - len(ms_points_str))
+                )
+            time_table = ttk.Treeview(
+                temp_frame,
+                columns=["Parameter"] + pressure_points,
+                show="headings",
+                height=1,
+            )
+            time_table.heading("Parameter", text="")
+            time_table.column("Parameter", anchor="w", width=150, stretch=False)
+            for i, pk in enumerate(pressure_points):
+                time_table.heading(pk, text=pk)
+                time_table.column(pk, anchor="center", stretch=True)
+
+            time_row = ["Time (ms)"] + [ms for ms in ms_points_str]
+            time_table.insert("", "end", values=time_row)
+
+            style.configure("Time.Treeview", font=("Helvetica", 10))
+            time_table.tag_configure("time", background="#f0f0f0")
+            time_table.grid(row=2, column=0, sticky="nsew", pady=5)
+
+            def update_time_table_columns(event=None):
+                if not temp_frame.winfo_exists():
+                    return
+                frame_width = (
+                    temp_frame.winfo_width() - 150
+                )  # Subtract Parameter column width
+                num_cols = len(pressure_points)
+                col_width = max(50, int(frame_width / num_cols * 0.98))
+                for pk in pressure_points:
+                    time_table.column(pk, width=col_width, anchor="center")
+
+            temp_frame.bind("<Configure>", update_time_table_columns)
+            update_time_table_columns()
+
+            # Update table_data for export
             table_data[["RT", "LT", "HT"].index(temp)] = [
-                ("Maximum", format_row(limits_max)),
-                ("Mean", format_row(mean)),
-                ("Minimum", format_row(limits_min)),
+                ("Maximum (bar)", format_row(limits_max)),
+                ("Mean (bar)", format_row(mean)),
+                ("Minimum (bar)", format_row(limits_min)),
+                ("Time (ms)", ms_points_str),
+                ("Pressure Points", pressure_points),
             ]
 
         report_win.mainloop()
