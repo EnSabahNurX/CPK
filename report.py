@@ -76,7 +76,7 @@ def show_report(self):
 
         # Frame with vertical scrollbar
         container = ttk.Frame(report_win)
-        container.pack(fill=tk.BOTH, expand=True, padx=0, pady=0)
+        container.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
         container.columnconfigure(0, weight=1)
         container.rowconfigure(0, weight=1)
 
@@ -194,7 +194,7 @@ def show_report(self):
         ms_points_dict = {}
 
         # Fixed pressure points
-        pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
+        pressure_points = ["PK 10%", "PK 25%", "PK 50%", "PK 75%", "PK 90%", "PK MAX"]
 
         # For each temperature, plot graph and table
         for temp in available_temps:
@@ -208,8 +208,9 @@ def show_report(self):
                 text=f"Temperature: {temp} | Version: {version} | Total Inflators: {total_inflators}",
                 padding=5,
             )
-            temp_frame.pack(fill=tk.BOTH, expand=True, padx=0, pady=5)
+            temp_frame.pack(fill=tk.BOTH, expand=True, padx=5, pady=5)
             temp_frame.columnconfigure(0, weight=1)
+            temp_frame.rowconfigure(1, weight=1)
 
             ms_points = set()
             for r in records:
@@ -432,20 +433,35 @@ def show_report(self):
             style.configure("Treeview.Heading", font=("Helvetica", 6, "bold"))
             style.map("Treeview", background=[("selected", "#fafafa")])
 
-            def update_table_columns(event=None):
-                if not temp_frame.winfo_exists():
+            def update_table_columns(
+                event=None, tf=temp_frame, tbl=table, cols=table_columns
+            ):
+                if not tf.winfo_exists():
                     return
-                frame_width = temp_frame.winfo_width()
-                num_cols = len(table_columns)
-                col_width = max(50, int(frame_width * 0.9 / num_cols))
-                table.column("Label", width=int(col_width * 1.5), anchor="center")
-                for pk in pressure_points:
-                    table.column(pk, width=col_width, anchor="center")
+                frame_width = tf.winfo_width() - 10
+                num_cols = len(cols)
+                if num_cols == 0 or frame_width <= 1:
+                    tf.after(100, lambda: update_table_columns(None, tf, tbl, cols))
+                    return
+                col_width = max(60, int(frame_width / num_cols))
+                for col in cols:
+                    tbl.column(col, width=col_width, anchor="center")
 
-            temp_frame.bind("<Configure>", update_table_columns)
-            update_table_columns()
+            temp_frame.bind(
+                "<Configure>",
+                lambda e, tf=temp_frame, tbl=table, cols=table_columns: update_table_columns(
+                    e, tf, tbl, cols
+                ),
+            )
+            temp_frame.after(
+                200,
+                lambda tf=temp_frame, tbl=table, cols=table_columns: update_table_columns(
+                    None, tf, tbl, cols
+                ),
+            )
+            update_table_columns(tf=temp_frame, tbl=table, cols=table_columns)
 
-            table.grid(row=1, column=0, sticky="nsew", pady=5)
+            table.grid(row=1, column=0, sticky="nsew", padx=(5, 15), pady=5)
 
             # Update table_data for export
             table_data[["RT", "LT", "HT"].index(temp)] = [

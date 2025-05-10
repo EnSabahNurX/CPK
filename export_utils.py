@@ -54,7 +54,7 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
         filename = f"report_{timestamp}.xlsx"
 
-        pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
+        pressure_points = ["PK 10%", "PK 25%", "PK 50%", "PK 75%", "PK 90%", "PK MAX"]
 
         for idx, temp in enumerate(["RT", "LT", "HT"]):
             if temp not in data_by_temp:
