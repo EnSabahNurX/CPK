@@ -76,10 +76,10 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
                     cell.font = bold_font
                     cell.border = thin_border
 
-            # Write pressure points as headers
-            ws.append(pressure_points)
+            # Write headers with Label column
+            ws.append([""] + pressure_points)
             header_row = ws.max_row
-            for col_idx, pk in enumerate(pressure_points, 1):
+            for col_idx, pk in enumerate([""] + pressure_points, 1):
                 cell = ws.cell(row=header_row, column=col_idx)
                 cell.alignment = center_alignment
                 cell.font = bold_font
@@ -89,11 +89,8 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
             for row_idx, (row_label, row_data) in enumerate(
                 table_data[idx], start=header_row + 1
             ):
-                row_data = row_data[
-                    : len(pressure_points)
-                ]  # Truncate to match pressure_points
-                ws.append([row_label] + row_data)
-                for col_idx in range(1, len(row_data) + 2):
+                ws.append(row_data)  # row_data includes label and values
+                for col_idx in range(1, len(row_data) + 1):
                     cell = ws.cell(row=row_idx, column=col_idx)
                     cell.alignment = center_alignment
                     cell.border = thin_border
@@ -108,10 +105,10 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
 
             ws.append([])
             ws.append(["Inflator Data"])
-            ws.append(pressure_points)
+            ws.append(["Inflator No"] + pressure_points)
 
             inflator_header_row = ws.max_row
-            for col_idx, pk in enumerate(pressure_points, 1):
+            for col_idx, pk in enumerate(["Inflator No"] + pressure_points, 1):
                 cell = ws.cell(row=inflator_header_row, column=col_idx)
                 cell.alignment = center_alignment
                 cell.font = bold_font
@@ -339,7 +336,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             table_cell_colors = []
             if temp_idx < len(table_data) and table_data[temp_idx]:
                 for label, values in table_data[temp_idx]:
-                    table_cell_data.append(values[: len(pressure_points)])
+                    table_cell_data.append(values[1:])  # Exclude label
                     table_row_labels.append(label)
                     if label == "Time (ms)":
                         table_cell_colors.append(["#f0f0f0"] * len(pressure_points))

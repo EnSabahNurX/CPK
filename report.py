@@ -385,26 +385,42 @@ def show_report(self):
             temp_frame.rowconfigure(0, weight=3)
             temp_frame.rowconfigure(1, weight=1)
 
-            # Combined Table (Time Table + Statistical Table)
+            # Combined Table with Label column
+            table_columns = ["Label"] + pressure_points
             table = ttk.Treeview(
                 temp_frame,
-                columns=pressure_points,
+                columns=table_columns,
                 show="headings",
                 height=4,
             )
+            table.heading("Label", text="")
             for pk in pressure_points:
                 table.heading(pk, text=pk)
                 table.column(pk, anchor="center", stretch=True)
+            table.column("Label", anchor="center", stretch=True)
 
             def format_row(row):
                 return [f"{v:.2f}" if not np.isnan(v) else "-" for v in row]
 
-            # Time row
-            table.insert("", "end", values=ms_points_str, tags=("time",))
-            # Statistical rows
-            table.insert("", "end", values=format_row(limits_max), tags=("max",))
-            table.insert("", "end", values=format_row(mean), tags=("mean",))
-            table.insert("", "end", values=format_row(limits_min), tags=("min",))
+            # Insert rows with labels
+            table.insert(
+                "", "end", values=["Time (ms)"] + ms_points_str, tags=("time",)
+            )
+            table.insert(
+                "",
+                "end",
+                values=["Maximum (bar)"] + format_row(limits_max),
+                tags=("max",),
+            )
+            table.insert(
+                "", "end", values=["Mean (bar)"] + format_row(mean), tags=("mean",)
+            )
+            table.insert(
+                "",
+                "end",
+                values=["Minimum (bar)"] + format_row(limits_min),
+                tags=("min",),
+            )
 
             table.tag_configure("time", background="#f0f0f0")
             table.tag_configure("max", background="#ffcccc")
@@ -412,15 +428,17 @@ def show_report(self):
             table.tag_configure("min", background="#cce6ff")
 
             style = ttk.Style()
-            style.configure("Treeview", font=("Helvetica", 10))
-            style.configure("Treeview.Heading", font=("Helvetica", 10, "bold"))
+            style.configure("Treeview", font=("Helvetica", 6), rowheight=20)
+            style.configure("Treeview.Heading", font=("Helvetica", 6, "bold"))
+            style.map("Treeview", background=[("selected", "#fafafa")])
 
             def update_table_columns(event=None):
                 if not temp_frame.winfo_exists():
                     return
                 frame_width = temp_frame.winfo_width()
-                num_cols = len(pressure_points)
-                col_width = max(50, int(frame_width / num_cols * 0.98))
+                num_cols = len(table_columns)
+                col_width = max(50, int(frame_width * 0.9 / num_cols))
+                table.column("Label", width=int(col_width * 1.5), anchor="center")
                 for pk in pressure_points:
                     table.column(pk, width=col_width, anchor="center")
 
@@ -431,10 +449,10 @@ def show_report(self):
 
             # Update table_data for export
             table_data[["RT", "LT", "HT"].index(temp)] = [
-                ("Time (ms)", ms_points_str),
-                ("Maximum (bar)", format_row(limits_max)),
-                ("Mean (bar)", format_row(mean)),
-                ("Minimum (bar)", format_row(limits_min)),
+                ("Time (ms)", ["Time (ms)"] + ms_points_str),
+                ("Maximum (bar)", ["Maximum (bar)"] + format_row(limits_max)),
+                ("Mean (bar)", ["Mean (bar)"] + format_row(mean)),
+                ("Minimum (bar)", ["Minimum (bar)"] + format_row(limits_min)),
             ]
 
         report_win.mainloop()
