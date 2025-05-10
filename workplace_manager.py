@@ -274,7 +274,7 @@ class WorkplaceManager:
 
         # Update display
         for reg in filtered_data:
-            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg['test_date']}"
+            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg.get('test_date', 'N/A')}"
             if reg["pressures"]:
                 line += " | Pressure data available"
             else:
@@ -308,7 +308,7 @@ class WorkplaceManager:
         self.list_results.insert(tk.END, "-" * len(header))
 
         for reg in self.workplace_data:
-            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg['test_date']}"
+            line = f"{reg['test_no']} | {reg['inflator_no']} | {reg['temperature_c']}°C | {reg['type']} | {reg['version']} | {reg['order']} | {reg.get('test_date', 'N/A')}"
             if reg["pressures"]:
                 line += " | Pressure data available"
             else:

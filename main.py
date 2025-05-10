@@ -5,6 +5,7 @@ import database
 from orders_manager import OrdersManager
 from workplace_manager import WorkplaceManager
 from tooltip import ToolTip
+from export_database import export_database_to_excel
 
 
 class ExcelToJsonConverter:
@@ -27,11 +28,30 @@ class ExcelToJsonConverter:
         title_frame = tk.Frame(self.frame_db)
         title_frame.grid(row=0, column=0, sticky="ew")
         title_frame.columnconfigure(0, weight=1)
+        title_frame.columnconfigure(1, minsize=150)
 
         self.label_database_title = tk.Label(
             title_frame, text="Database", font=("Helvetica", 14, "bold")
         )
         self.label_database_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
+
+        self.btn_export_db = tk.Button(
+            title_frame,
+            text="Export Database",
+            command=self.export_database,
+            font=("Helvetica", 10, "bold"),
+            width=15,
+            bg="#5cb85c",
+            fg="white",
+        )
+        self.btn_export_db.grid(row=0, column=1, sticky="e", padx=(0, 5))
+        self.btn_export_db.bind(
+            "<Enter>", lambda e: self.btn_export_db.config(bg="#6fd66f")
+        )
+        self.btn_export_db.bind(
+            "<Leave>", lambda e: self.btn_export_db.config(bg="#5cb85c")
+        )
+        ToolTip(self.btn_export_db, "Export entire database to Excel")
 
         # Orders Input
         tk.Label(self.frame_db, text="Enter order numbers separated by commas:").grid(
@@ -103,6 +123,10 @@ class ExcelToJsonConverter:
             self.entry_orders.delete(0, tk.END)
         else:
             messagebox.showwarning("Warning", message)
+
+    def export_database(self):
+        """Export the database to Excel."""
+        export_database_to_excel(self)
 
 
 if __name__ == "__main__":
