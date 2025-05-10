@@ -47,7 +47,7 @@ The application is designed for engineers or researchers analyzing ballistic tes
 ### Steps
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/EnSabahNurX/CPK
    cd ballistic-tests-reporting
    ```
 
@@ -238,7 +238,7 @@ To adapt the application:
 5. Open a pull request with a detailed description.
 
 ## License
-This project is licensed under the MIT License. See the `LICENSE` file for details (create one if needed).
+This project is licensed under the MIT License. See the `LICENSE` file for details.
 
 ## Acknowledgments
 - Built with Python, Tkinter, and Matplotlib for robust data visualization.
@@ -246,4 +246,4 @@ This project is licensed under the MIT License. See the `LICENSE` file for detai
 - Thanks to the open-source community for libraries like `reportlab` and `pandas`.
 
 ## Contact
-For issues or feature requests, open an issue on the repository or contact the maintainer at `<your-email>` (replace with actual contact if applicable).
+For issues or feature requests, open an issue on the repository or contact the maintainer at ricklimadealmeida@gmail.com
