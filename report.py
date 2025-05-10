@@ -5,9 +5,8 @@ from matplotlib.backends.backend_tkagg import FigureCanvasTkAgg
 import numpy as np
 import json
 from datetime import datetime
-from export_utils import export_to_excel, export_to_pdf, adjust_column_widths
+from export_utils import export_to_excel, export_to_pdf
 from tooltip import ToolTip
-import traceback
 
 
 def show_report(self):
@@ -33,6 +32,19 @@ def show_report(self):
             if temp not in data_by_temp:
                 data_by_temp[temp] = []
             data_by_temp[temp].append(reg)
+
+        # Define available temperatures, sorted to prioritize RT, LT, HT
+        available_temps = sorted(
+            [temp for temp in data_by_temp if data_by_temp[temp]],
+            key=lambda x: (
+                ["RT", "LT", "HT"].index(x)
+                if x in ["RT", "LT", "HT"]
+                else len(["RT", "LT", "HT"])
+            ),
+        )
+        if not available_temps:
+            messagebox.showwarning("Warning", "No valid temperature data to report.")
+            return
 
         # Create report window
         report_win = tk.Toplevel(self.root)
@@ -178,13 +190,11 @@ def show_report(self):
         report_win.after(100, bind_tooltips)
 
         # Store table data and ms_points for export
-        table_data = []
+        table_data = [[] for _ in range(3)]  # [RT, LT, HT]
         ms_points_dict = {}
 
         # For each temperature, plot graph and table
-        for temp in ["RT", "LT", "HT"]:
-            if temp not in data_by_temp:
-                continue
+        for temp in available_temps:
             records = data_by_temp[temp]
             versions = set(r["version"] for r in records)
             version = ", ".join(versions) if len(versions) > 1 else list(versions)[0]
@@ -212,7 +222,7 @@ def show_report(self):
                     text="No pressure data available for this temperature.",
                     font=("Helvetica", 10),
                 ).pack(pady=10, fill=tk.BOTH, expand=True)
-                table_data.append([])  # Empty table data for this temperature
+                table_data[["RT", "LT", "HT"].index(temp)] = []
                 continue
 
             pressure_matrix = []
@@ -226,6 +236,15 @@ def show_report(self):
                     p = [np.nan] * len(ms_points)
                 pressure_matrix.append(p)
             pressure_matrix = np.array(pressure_matrix, dtype=np.float64)
+
+            if pressure_matrix.size == 0:
+                ttk.Label(
+                    temp_frame,
+                    text="No valid pressure data available for this temperature.",
+                    font=("Helvetica", 10),
+                ).pack(pady=10, fill=tk.BOTH, expand=True)
+                table_data[["RT", "LT", "HT"].index(temp)] = []
+                continue
 
             limits_max = []
             limits_min = []
@@ -392,18 +411,11 @@ def show_report(self):
 
             table.grid(row=1, column=0, sticky="nsew", pady=5)
 
-            table_data.append(
-                [
-                    ("Maximum", format_row(limits_max)),
-                    ("Mean", format_row(mean)),
-                    ("Minimum", format_row(limits_min)),
-                ]
-            )
-
-        # Ensure table_data has entries for all temperatures
-        for temp in ["RT", "LT", "HT"]:
-            if temp not in data_by_temp and len(table_data) < 3:
-                table_data.append([])
+            table_data[["RT", "LT", "HT"].index(temp)] = [
+                ("Maximum", format_row(limits_max)),
+                ("Mean", format_row(mean)),
+                ("Minimum", format_row(limits_min)),
+            ]
 
         report_win.mainloop()
     except Exception as e:
