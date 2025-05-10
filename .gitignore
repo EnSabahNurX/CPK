@@ -1,3 +1,4 @@
 Python/
 Backup/
 __pycache__/
+.gitignore
