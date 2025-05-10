@@ -5,7 +5,7 @@ import numpy as np
 from openpyxl import Workbook
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.utils import get_column_letter
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 from openpyxl.worksheet.protection import SheetProtection
 import config
 
@@ -22,6 +22,19 @@ def export_database_to_excel(self):
         if not data:
             messagebox.showwarning("Warning", config.ERROR_MESSAGES["empty_database"])
             return
+
+        # Prompt user for save location
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = f"Data_{timestamp}.xlsx"
+        filename = filedialog.asksaveasfilename(
+            parent=self.root,
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=default_filename,
+            title="Save Database Export As",
+        )
+        if not filename:
+            return  # User canceled the dialog
 
         wb = Workbook()
         wb.remove(wb.active)
@@ -403,8 +416,6 @@ def export_database_to_excel(self):
                 formatRows=False,
                 insertRows=False,
                 insertColumns=False,
-                deleteRows=False,
-                deleteColumns=False,
                 sort=True,
                 autoFilter=True,
             )
@@ -481,8 +492,6 @@ def export_database_to_excel(self):
                     max_height = max(max_height, lines * 15)
             ws_instructions.row_dimensions[row[0].row].height = max_height
 
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"Data_{timestamp}.xlsx"
         wb.save(filename)
         messagebox.showinfo("Success", f"Database exported to {filename}")
 

@@ -5,7 +5,7 @@ from openpyxl import Workbook
 from matplotlib.backends.backend_pdf import PdfPages
 from openpyxl.styles import Font, Alignment, PatternFill, Border, Side
 from datetime import datetime
-from tkinter import messagebox
+from tkinter import messagebox, filedialog
 import os
 
 
@@ -27,6 +27,18 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
     try:
         if not data_by_temp or not table_data or not ms_points_dict:
             raise ValueError("Invalid input data for Excel export")
+
+        # Prompt user for save location
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = f"report_{timestamp}.xlsx"
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".xlsx",
+            filetypes=[("Excel files", "*.xlsx")],
+            initialfile=default_filename,
+            title="Save Excel Report As",
+        )
+        if not filename:
+            return  # User canceled the dialog
 
         wb = Workbook()
         wb.remove(wb.active)
@@ -50,9 +62,6 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
         min_fill = PatternFill(
             start_color="CCE6FF", end_color="CCE6FF", fill_type="solid"
         )
-
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"report_{timestamp}.xlsx"
 
         pressure_points = ["PK 10%", "PK 25%", "PK 50%", "PK 75%", "PK 90%", "PK MAX"]
 
@@ -145,6 +154,18 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
         ):
             raise ValueError("Invalid input data or JSON file not found")
 
+        # Prompt user for save location
+        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        default_filename = f"report_{timestamp}.pdf"
+        filename = filedialog.asksaveasfilename(
+            defaultextension=".pdf",
+            filetypes=[("PDF files", "*.pdf")],
+            initialfile=default_filename,
+            title="Save PDF Report As",
+        )
+        if not filename:
+            return  # User canceled the dialog
+
         available_temps = [temp for temp in data_by_temp if data_by_temp[temp]]
         num_temps = len(available_temps)
         if num_temps == 0:
@@ -165,18 +186,6 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
             temp_counts[temp] = len(records)
         version_str = ", ".join(versions) if len(versions) > 1 else versions.pop()
         report_date = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"report_{timestamp}.pdf"
-
-        # Ensure output directory is writable
-        output_dir = os.path.dirname(json_file) or os.getcwd()
-        try:
-            with open(os.path.join(output_dir, "test_write.txt"), "w") as f:
-                f.write("test")
-            os.remove(os.path.join(output_dir, "test_write.txt"))
-        except PermissionError:
-            output_dir = os.path.expanduser("~/")
-            filename = os.path.join(output_dir, f"report_{timestamp}.pdf")
 
         fig = plt.figure(figsize=(8.27, 11.69))  # A4 size
         fig.patch.set_facecolor("#fafafa")
@@ -215,7 +224,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
         )
         axes = axes.flatten()  # Ensure axes is a flat list
 
-        pressure_points = ["PK10", "PK25", "PK50", "PK75", "PK90", "PKMAX"]
+        pressure_points = ["PK 10%", "PK 25%", "PK 50%", "PK 75%", "PK 90%", "PK MAX"]
 
         for idx, temp in enumerate(available_temps):
             ax_graph = axes[idx * 2]
