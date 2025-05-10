@@ -62,7 +62,7 @@ Custom tooltip module: For button tooltips.
 Steps
 
 Clone the Repository:
-git clone <repository-url>
+git clone (https://github.com/EnSabahNurX/CPK)
 cd ballistic-tests-reporting
 
 
@@ -321,7 +321,7 @@ Push to the branch: git push origin feature-name.
 Open a pull request with a detailed description.
 
 License
-This project is licensed under the MIT License. See the LICENSE file for details (create one if needed).
+This project is licensed under the MIT License. See the LICENSE file for details.
 Acknowledgments
 
 Built with Python, Tkinter, and Matplotlib for robust data visualization.
@@ -329,4 +329,4 @@ Inspired by the need for clear, professional ballistic test reports.
 Thanks to the open-source community for libraries like reportlab and pandas.
 
 Contact
-For issues or feature requests, open an issue on the repository or contact the maintainer at <your-email> (replace with actual contact if applicable).
+For issues or feature requests, open an issue on the repository or contact the maintainer at ricklimadealmeida@gmail.com
