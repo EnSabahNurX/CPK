@@ -357,7 +357,7 @@ class OrdersManager:
         paginated_orders = orders_list[start_idx:end_idx]
 
         for idx, (version, order, test_date) in enumerate(
-            paginated_orders, start=start_idx + 1
+                paginated_orders, start=start_idx + 1
         ):
             key = (version, order)
             if key not in self.order_vars:
@@ -496,9 +496,9 @@ class OrdersManager:
 
         # Check for version conflicts
         if (
-            self.workplace_manager.workplace_data
-            and self.workplace_manager.workplace_data[0]["version"]
-            not in set(version for version, _ in selected_orders)
+                self.workplace_manager.workplace_data
+                and self.workplace_manager.workplace_data[0]["version"]
+                not in set(version for version, _ in selected_orders)
         ):
             messagebox.showerror(
                 "Error",

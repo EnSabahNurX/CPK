@@ -214,7 +214,7 @@ def export_database_to_excel(self):
                         "%Y-%m-%d",
                     )
                     if x[1].get("metadata", {}).get("test_date", "0000-00-00")
-                    != "0000-00-00"
+                       != "0000-00-00"
                     else datetime.min
                 ),
                 reverse=True,
@@ -314,13 +314,13 @@ def export_database_to_excel(self):
                                             len(ms_points_by_temp[t])
                                             for t in config.TEMPERATURE_TYPES[:temp_idx]
                                         )
-                                    ]
+                                        ]
                                     max_limit = limits_by_temp[temp]["max"].get(str(ms))
                                     min_limit = limits_by_temp[temp]["min"].get(str(ms))
                                     if max_limit is not None and val > float(max_limit):
                                         cell.fill = config.WARNING_FILL
                                     elif min_limit is not None and val < float(
-                                        min_limit
+                                            min_limit
                                     ):
                                         cell.fill = config.LOW_FILL
                                 except (ValueError, IndexError):

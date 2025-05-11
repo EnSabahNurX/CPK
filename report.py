@@ -418,7 +418,7 @@ def show_report(self):
             style.configure("Treeview.Heading", font=("Helvetica", 6, "bold"))
 
             def update_table_columns(
-                event=None, tf=temp_frame, tbl=table, cols=table_columns
+                    event=None, tf=temp_frame, tbl=table, cols=table_columns
             ):
                 if not tf.winfo_exists():
                     return
