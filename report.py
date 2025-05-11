@@ -431,7 +431,6 @@ def show_report(self):
             style = ttk.Style()
             style.configure("Treeview", font=("Helvetica", 6), rowheight=20)
             style.configure("Treeview.Heading", font=("Helvetica", 6, "bold"))
-            style.map("Treeview", background=[("selected", "#fafafa")])
 
             def update_table_columns(
                 event=None, tf=temp_frame, tbl=table, cols=table_columns
