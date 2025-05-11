@@ -1,5 +1,5 @@
 import tkinter as tk
-from tkinter import messagebox
+from tkinter import ttk, messagebox
 import config
 import database
 from orders_manager import OrdersManager
@@ -10,7 +10,7 @@ from export_database import export_database_to_excel
 
 class ExcelToJsonConverter:
     def __init__(self):
-        self.root = tk.Tk()
+        self.root = tk.Tk()  # tk.Tk remains as ttk does not provide an equivalent
         self.root.title("Ballistic Tests Converter")
         self.root.geometry("1200x700")
         self.root.minsize(1000, 600)
@@ -18,74 +18,79 @@ class ExcelToJsonConverter:
         self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(0, weight=1)
 
+        # Configure ttk style for buttons to match original colors
+        style = ttk.Style()
+        style.configure(
+            "Export.TButton",
+            font=("Helvetica", 10, "bold"),
+            foreground="black",
+            background="#5cb85c",
+        )
+        style.map("Export.TButton", background=[("active", "#6fd66f")])
+        style.configure("Action.TButton", font=("Helvetica", 10, "bold"))
+
         # Left Frame (Database)
-        self.frame_db = tk.Frame(self.root, relief="groove", padx=10, pady=10, bd=2)
+        self.frame_db = ttk.Frame(self.root, relief="groove", padding=10, borderwidth=2)
         self.frame_db.grid(row=0, column=0, sticky="nsew")
         self.frame_db.columnconfigure(0, weight=1)
         self.frame_db.rowconfigure(5, weight=1)
 
         # Database Title Frame
-        title_frame = tk.Frame(self.frame_db)
+        title_frame = ttk.Frame(self.frame_db)
         title_frame.grid(row=0, column=0, sticky="ew")
         title_frame.columnconfigure(0, weight=1)
         title_frame.columnconfigure(1, minsize=150)
 
-        self.label_database_title = tk.Label(
+        self.label_database_title = ttk.Label(
             title_frame, text="Database", font=("Helvetica", 14, "bold")
         )
         self.label_database_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
 
-        self.btn_export_db = tk.Button(
+        self.btn_export_db = ttk.Button(
             title_frame,
             text="Export Database",
             command=self.export_database,
-            font=("Helvetica", 10, "bold"),
+            style="Export.TButton",
             width=15,
-            bg="#5cb85c",
-            fg="white",
         )
         self.btn_export_db.grid(row=0, column=1, sticky="e", padx=(0, 5))
-        self.btn_export_db.bind(
-            "<Enter>", lambda e: self.btn_export_db.config(bg="#6fd66f")
-        )
-        self.btn_export_db.bind(
-            "<Leave>", lambda e: self.btn_export_db.config(bg="#5cb85c")
-        )
         ToolTip(self.btn_export_db, "Export entire database to Excel")
 
         # Orders Input
-        tk.Label(self.frame_db, text="Enter order numbers separated by commas:").grid(
+        ttk.Label(self.frame_db, text="Enter order numbers separated by commas:").grid(
             row=1, column=0, sticky="w", pady=(10, 5)
         )
-        self.entry_orders = tk.Entry(self.frame_db)
+        self.entry_orders = ttk.Entry(self.frame_db)
         self.entry_orders.grid(row=2, column=0, sticky="ew", pady=5)
 
         # Process and Remove Orders Buttons Side by Side
-        btns_frame = tk.Frame(self.frame_db)
+        btns_frame = ttk.Frame(self.frame_db)
         btns_frame.grid(row=3, column=0, sticky="ew", pady=5)
         btns_frame.columnconfigure((0, 1), weight=1)
 
-        self.btn_process = tk.Button(
+        self.btn_process = ttk.Button(
             btns_frame,
             text="Add Entered Orders",
             command=self.process_orders,
-            font=("Helvetica", 10, "bold"),
+            style="Action.TButton",
             width=15,
         )
         self.btn_process.grid(row=0, column=0, sticky="ew", padx=(0, 5))
         ToolTip(self.btn_process, "Process and add orders to the database")
 
-        self.btn_remove_orders = tk.Button(
+        self.btn_remove_orders = ttk.Button(
             btns_frame,
             text="Remove Entered Orders",
             command=self.remove_orders_by_input,
-            font=("Helvetica", 10, "bold"),
+            style="Action.TButton",
             width=15,
         )
         self.btn_remove_orders.grid(row=0, column=1, sticky="ew", padx=(5, 0))
         ToolTip(self.btn_remove_orders, "Remove specified orders from the database")
 
-        self.status_label = tk.Label(self.frame_db, text="", anchor="w", fg="green")
+        self.status_label = ttk.Label(
+            self.frame_db, text="", anchor="w", foreground="green"
+        )
         self.status_label.grid(row=4, column=0, sticky="ew", pady=(5, 10))
 
         # Initializations
@@ -108,7 +113,7 @@ class ExcelToJsonConverter:
         success, message = self.orders_manager.process_orders(orders_input)
         if success:
             self.entry_orders.delete(0, tk.END)
-            self.status_label.config(text=message)
+            self.status_label.configure(text=message)
             messagebox.showinfo("Success", message)
         else:
             messagebox.showerror("Error", message)
@@ -118,7 +123,7 @@ class ExcelToJsonConverter:
         orders_input = self.entry_orders.get().strip()
         success, message = self.orders_manager.remove_orders_by_input(orders_input)
         if success:
-            self.status_label.config(text=message)
+            self.status_label.configure(text=message)
             messagebox.showinfo("Success", message)
             self.entry_orders.delete(0, tk.END)
         else:

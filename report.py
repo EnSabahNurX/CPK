@@ -54,25 +54,78 @@ def show_report(self):
         report_win.focus_set()
         report_win.grab_set()
 
+        # Configure ttk styles
+        style = ttk.Style()
+        style.configure(
+            "Export.TButton",
+            font=("Helvetica", 10, "bold"),
+            foreground="black",
+            background="#4682b4",
+        )
+        style.map("Export.TButton", background=[("active", "#5a9bd4")])
+        style.configure(
+            "Close.TButton",
+            font=("Helvetica", 10, "bold"),
+            foreground="black",
+            background="#d9534f",
+        )
+        style.map("Close.TButton", background=[("active", "#e57373")])
+        style.configure("Header.TFrame", background="#fafafa")
+        style.configure("Header.TLabel", background="#fafafa")
+
         # Header
-        header_frame = tk.Frame(report_win, bg="#fafafa")
+        header_frame = ttk.Frame(report_win, style="Header.TFrame")
         header_frame.pack(fill=tk.X, padx=5, pady=5)
-        tk.Label(
+        ttk.Label(
             header_frame,
             text="Ballistic Tests Report",
             font=("Helvetica", 16, "bold"),
-            bg="#fafafa",
+            style="Header.TLabel",
         ).pack(side=tk.LEFT)
-        tk.Label(
+        ttk.Label(
             header_frame,
             text=f"Generated: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             font=("Helvetica", 10),
-            bg="#fafafa",
+            style="Header.TLabel",
         ).pack(side=tk.RIGHT)
 
         # Frame for buttons in top-right corner
-        btn_frame = tk.Frame(report_win, bg="#fafafa")
+        btn_frame = ttk.Frame(report_win, style="Header.TFrame")
         btn_frame.pack(side=tk.TOP, fill=tk.X, padx=5, pady=5)
+
+        # Export to PDF button
+        btn_export_pdf = ttk.Button(
+            btn_frame,
+            text="Export to PDF",
+            command=lambda: export_to_pdf(
+                data_by_temp, table_data, ms_points_dict, self.json_file
+            ),
+            style="Export.TButton",
+        )
+        btn_export_pdf.pack(side=tk.RIGHT, padx=(5, 5))
+
+        # Export to Excel button
+        btn_export_excel = ttk.Button(
+            btn_frame,
+            text="Export to Excel",
+            command=lambda: export_to_excel(data_by_temp, table_data, ms_points_dict),
+            style="Export.TButton",
+        )
+        btn_export_excel.pack(side=tk.RIGHT, padx=(5, 5))
+
+        # Close button
+        btn_close = ttk.Button(
+            btn_frame, text="Close", command=report_win.destroy, style="Close.TButton"
+        )
+        btn_close.pack(side=tk.RIGHT, padx=(5, 5))
+
+        # Bind tooltips
+        def bind_tooltips():
+            ToolTip(btn_export_pdf, "Export report as PDF file")
+            ToolTip(btn_export_excel, "Export report as Excel file")
+            ToolTip(btn_close, "Close report window")
+
+        report_win.after(100, bind_tooltips)
 
         # Frame with vertical scrollbar
         container = ttk.Frame(report_win)
@@ -120,74 +173,6 @@ def show_report(self):
                 )
 
         container.bind("<Configure>", update_canvas_width)
-
-        # Button hover effects
-        def on_enter(btn):
-            btn.config(bg="#5a9bd4")
-
-        def on_leave(btn):
-            btn.config(bg="#4682b4")
-
-        # Export to PDF button
-        btn_export_pdf = tk.Button(
-            btn_frame,
-            text="Export to PDF",
-            command=lambda: export_to_pdf(
-                data_by_temp, table_data, ms_points_dict, self.json_file
-            ),
-            font=("Helvetica", 10, "bold"),
-            bg="#4682b4",
-            fg="white",
-            padx=10,
-            pady=5,
-            relief="flat",
-            bd=2,
-        )
-        btn_export_pdf.pack(side=tk.RIGHT, padx=5)
-        btn_export_pdf.bind("<Enter>", lambda e: on_enter(btn_export_pdf))
-        btn_export_pdf.bind("<Leave>", lambda e: on_leave(btn_export_pdf))
-
-        # Export to Excel button
-        btn_export_excel = tk.Button(
-            btn_frame,
-            text="Export to Excel",
-            command=lambda: export_to_excel(data_by_temp, table_data, ms_points_dict),
-            font=("Helvetica", 10, "bold"),
-            bg="#4682b4",
-            fg="white",
-            padx=10,
-            pady=5,
-            relief="flat",
-            bd=2,
-        )
-        btn_export_excel.pack(side=tk.RIGHT, padx=5)
-        btn_export_excel.bind("<Enter>", lambda e: on_enter(btn_export_excel))
-        btn_export_excel.bind("<Leave>", lambda e: on_leave(btn_export_excel))
-
-        # Close button
-        btn_close = tk.Button(
-            btn_frame,
-            text="Close",
-            command=report_win.destroy,
-            font=("Helvetica", 10, "bold"),
-            bg="#d9534f",
-            fg="white",
-            padx=10,
-            pady=5,
-            relief="flat",
-            bd=2,
-        )
-        btn_close.pack(side=tk.RIGHT, padx=5)
-        btn_close.bind("<Enter>", lambda e: btn_close.config(bg="#e57373"))
-        btn_close.bind("<Leave>", lambda e: btn_close.config(bg="#d9534f"))
-
-        # Delay tooltip binding to avoid blocking the event loop
-        def bind_tooltips():
-            ToolTip(btn_export_pdf, "Export report as PDF file")
-            ToolTip(btn_export_excel, "Export report as Excel file")
-            ToolTip(btn_close, "Close report window")
-
-        report_win.after(100, bind_tooltips)
 
         # Store table data and ms_points for export
         table_data = [[] for _ in range(3)]  # [RT, LT, HT]

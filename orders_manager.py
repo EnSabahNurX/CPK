@@ -11,11 +11,26 @@ class OrdersManager:
         self.parent = parent
         self.json_file = json_file
         self.excel_folder = excel_folder
-        self.workplace_manager = workplace_manager  # Reference to WorkplaceManager
+        self.workplace_manager = workplace_manager
+
+        # Configure ttk style for buttons
+        style = ttk.Style()
+        style.configure("Action.TButton", font=("Helvetica", 10, "bold"))
+        style.configure(
+            "Send.TButton", font=("Helvetica", 10, "bold"), background="#90EE90"
+        )
+        style.configure(
+            "Remove.TButton", font=("Helvetica", 10, "bold"), background="#FF6B6B"
+        )
+        style.configure(
+            "Clear.TButton", font=("Helvetica", 10, "bold"), background="#D3D3D3"
+        )
+        style.configure("Filters.TFrame", background="#f0f0f0")
+        style.configure("Filters.TLabel", background="#f0f0f0")
 
         # Orders Manager Frame
-        self.frame_orders_manager = tk.Frame(
-            self.parent, relief="groove", bd=2, padx=10, pady=10
+        self.frame_orders_manager = ttk.Frame(
+            self.parent, relief="groove", borderwidth=2, padding=10
         )
         self.frame_orders_manager.grid(row=5, column=0, sticky="nsew")
         self.frame_orders_manager.columnconfigure(0, weight=1)
@@ -27,35 +42,31 @@ class OrdersManager:
         self.total_pages = 1
 
         # Orders Manager Title
-        title_orders_frame = tk.Frame(self.frame_orders_manager)
+        title_orders_frame = ttk.Frame(self.frame_orders_manager)
         title_orders_frame.grid(row=0, column=0, sticky="ew", pady=(0, 10))
         title_orders_frame.columnconfigure(0, weight=1)
-        tk.Label(
+        ttk.Label(
             title_orders_frame, text="Orders Manager", font=("Helvetica", 12, "bold")
         ).grid(row=0, column=0, sticky="w")
 
         # Filters Frame
-        filters_frame = tk.Frame(
+        filters_frame = ttk.Frame(
             self.frame_orders_manager,
             relief="groove",
-            bd=2,
-            bg="#f0f0f0",
-            padx=10,
-            pady=10,
+            borderwidth=2,
+            padding=10,
+            style="Filters.TFrame",
         )
         filters_frame.grid(row=1, column=0, sticky="ew", pady=(0, 5))
         filters_frame.columnconfigure((0, 1, 2, 3), weight=1)
 
         # Version Filter
-        tk.Label(filters_frame, text="Version:", bg="#f0f0f0").grid(
+        ttk.Label(filters_frame, text="Version:", style="Filters.TLabel").grid(
             row=0, column=0, sticky="w", padx=(0, 5)
         )
         self.version_var = tk.StringVar()
         self.version_combobox = ttk.Combobox(
-            filters_frame,
-            textvariable=self.version_var,
-            state="readonly",
-            width=10,
+            filters_frame, textvariable=self.version_var, state="readonly", width=10
         )
         self.version_combobox.grid(row=0, column=1, sticky="w")
         self.version_combobox.bind("<<ComboboxSelected>>", self.on_version_filter)
@@ -64,7 +75,7 @@ class OrdersManager:
         ToolTip(self.version_combobox, "Filter orders by version")
 
         # Date Range Filter
-        tk.Label(filters_frame, text="Date Range:", bg="#f0f0f0").grid(
+        ttk.Label(filters_frame, text="Date Range:", style="Filters.TLabel").grid(
             row=0, column=2, sticky="w", padx=(10, 5)
         )
         self.date_range_var = tk.StringVar()
@@ -81,49 +92,48 @@ class OrdersManager:
         ToolTip(self.date_range_combobox, "Filter orders by date range")
 
         # Custom Date Inputs
-        self.custom_dates_frame = tk.Frame(filters_frame, bg="#f0f0f0")
+        self.custom_dates_frame = ttk.Frame(filters_frame, style="Filters.TFrame")
         self.custom_dates_frame.grid(
             row=1, column=0, columnspan=4, sticky="w", pady=(5, 0)
         )
-        tk.Label(self.custom_dates_frame, text="Start:", bg="#f0f0f0").grid(
+        ttk.Label(self.custom_dates_frame, text="Start:", style="Filters.TLabel").grid(
             row=0, column=0, sticky="w", padx=(0, 5)
         )
-        self.start_date_entry = tk.Entry(self.custom_dates_frame, width=12)
+        self.start_date_entry = ttk.Entry(self.custom_dates_frame, width=12)
         self.start_date_entry.grid(row=0, column=1, sticky="w")
-        self.start_date_btn = tk.Button(
+        self.start_date_btn = ttk.Button(
             self.custom_dates_frame,
             text="📅",
             command=lambda: self.pick_date(self.start_date_entry),
             width=2,
+            style="Action.TButton",
         )
         self.start_date_btn.grid(row=0, column=2, sticky="w", padx=2)
-        tk.Label(self.custom_dates_frame, text="End:", bg="#f0f0f0").grid(
+        ttk.Label(self.custom_dates_frame, text="End:", style="Filters.TLabel").grid(
             row=0, column=3, sticky="w", padx=(10, 5)
         )
-        self.end_date_entry = tk.Entry(self.custom_dates_frame, width=12)
+        self.end_date_entry = ttk.Entry(self.custom_dates_frame, width=12)
         self.end_date_entry.grid(row=0, column=4, sticky="w")
-        self.end_date_btn = tk.Button(
+        self.end_date_btn = ttk.Button(
             self.custom_dates_frame,
             text="📅",
             command=lambda: self.pick_date(self.end_date_entry),
             width=2,
+            style="Action.TButton",
         )
         self.end_date_btn.grid(row=0, column=5, sticky="w", padx=2)
         self.custom_dates_frame.grid_remove()
 
         # Pagination Frame
-        pagination_frame = tk.Frame(self.frame_orders_manager)
+        pagination_frame = ttk.Frame(self.frame_orders_manager)
         pagination_frame.grid(row=2, column=0, sticky="ew", pady=5)
         pagination_frame.columnconfigure(2, weight=1)
 
-        tk.Label(pagination_frame, text="Items per page:").grid(
+        ttk.Label(pagination_frame, text="Items per page:").grid(
             row=0, column=0, sticky="w", padx=(0, 5)
         )
         self.page_selector = ttk.Combobox(
-            pagination_frame,
-            values=[5, 10, 15, 20, 25, 30],
-            width=5,
-            state="readonly",
+            pagination_frame, values=[5, 10, 15, 20, 25, 30], width=5, state="readonly"
         )
         self.page_selector.set(self.orders_per_page)
         self.page_selector.grid(row=0, column=1, sticky="w")
@@ -131,7 +141,7 @@ class OrdersManager:
         ToolTip(self.page_selector, "Select number of orders per page")
 
         self.select_all_var = tk.BooleanVar()
-        self.select_all_chk = tk.Checkbutton(
+        self.select_all_chk = ttk.Checkbutton(
             pagination_frame,
             text="Select All",
             variable=self.select_all_var,
@@ -140,33 +150,34 @@ class OrdersManager:
         self.select_all_chk.grid(row=0, column=2, sticky="w", padx=10)
         ToolTip(self.select_all_chk, "Select all orders on current page")
 
-        self.nav_frame = tk.Frame(pagination_frame)
+        # Navigation Frame for Prev, Page Info, and Next
+        self.nav_frame = ttk.Frame(pagination_frame)
         self.nav_frame.grid(row=0, column=3, sticky="e")
-        self.prev_btn = tk.Button(
+        self.prev_btn = ttk.Button(
             self.nav_frame,
             text="< Prev",
             command=lambda: self.change_page(-1),
             width=8,
-            font=("Helvetica", 10),
+            style="Action.TButton",
         )
-        self.prev_btn.pack(side="left", padx=2)
-        self.page_info = tk.Label(
+        self.prev_btn.pack(side="left", padx=(0, 5))
+        self.page_info = ttk.Label(
             self.nav_frame, text="Page 1/1", width=10, anchor="center"
         )
-        self.page_info.pack(side="left", padx=5)
-        self.next_btn = tk.Button(
+        self.page_info.pack(side="left", padx=(5, 5))
+        self.next_btn = ttk.Button(
             self.nav_frame,
             text="Next >",
             command=lambda: self.change_page(1),
             width=8,
-            font=("Helvetica", 10),
+            style="Action.TButton",
         )
-        self.next_btn.pack(side="left", padx=2)
+        self.next_btn.pack(side="left", padx=(5, 0))
 
         # Canvas and Scrollbar for Orders
         self.orders_canvas = tk.Canvas(self.frame_orders_manager)
         self.orders_canvas.grid(row=3, column=0, sticky="nsew", padx=5, pady=5)
-        self.orders_scrollbar = tk.Scrollbar(
+        self.orders_scrollbar = ttk.Scrollbar(
             self.frame_orders_manager,
             orient=tk.VERTICAL,
             command=self.orders_canvas.yview,
@@ -174,7 +185,7 @@ class OrdersManager:
         self.orders_scrollbar.grid(row=3, column=1, sticky="ns", pady=5)
         self.orders_canvas.configure(yscrollcommand=self.orders_scrollbar.set)
 
-        self.orders_inner_frame = tk.Frame(self.orders_canvas)
+        self.orders_inner_frame = ttk.Frame(self.orders_canvas)
         self.orders_canvas.create_window(
             (0, 0), window=self.orders_inner_frame, anchor="nw"
         )
@@ -198,29 +209,27 @@ class OrdersManager:
         self.order_checkbuttons = {}
 
         # Action Buttons Frame
-        action_btn_frame = tk.Frame(
-            self.frame_orders_manager, relief="groove", bd=2, padx=10, pady=10
+        action_btn_frame = ttk.Frame(
+            self.frame_orders_manager, relief="groove", borderwidth=2, padding=10
         )
         action_btn_frame.grid(row=4, column=0, sticky="ew", pady=5)
         action_btn_frame.columnconfigure((0, 1, 2), weight=1)
 
-        self.btn_send_workplace = tk.Button(
+        self.btn_send_workplace = ttk.Button(
             action_btn_frame,
             text="Send to Workplace",
             command=self.send_to_workplace,
-            font=("Helvetica", 10, "bold"),
-            bg="#90EE90",
+            style="Send.TButton",
             width=15,
         )
         self.btn_send_workplace.grid(row=0, column=0, sticky="ew", padx=5)
         ToolTip(self.btn_send_workplace, "Send selected orders to workplace")
 
-        self.btn_remove_workplace_orders = tk.Button(
+        self.btn_remove_workplace_orders = ttk.Button(
             action_btn_frame,
             text="Remove Tests",
             command=self.remove_workplace_orders_selected,
-            font=("Helvetica", 10, "bold"),
-            bg="#FF6B6B",
+            style="Remove.TButton",
             width=15,
         )
         self.btn_remove_workplace_orders.grid(row=0, column=1, sticky="ew", padx=5)
@@ -228,12 +237,11 @@ class OrdersManager:
             self.btn_remove_workplace_orders, "Remove selected orders from workplace"
         )
 
-        self.btn_clear_workplace = tk.Button(
+        self.btn_clear_workplace = ttk.Button(
             action_btn_frame,
             text="Clear Workplace",
             command=self.clear_workplace,
-            font=("Helvetica", 10, "bold"),
-            bg="#D3D3D3",
+            style="Clear.TButton",
             width=15,
         )
         self.btn_clear_workplace.grid(row=0, column=2, sticky="ew", padx=5)
@@ -250,7 +258,7 @@ class OrdersManager:
         popup.resizable(False, False)
         date_picker = DateEntry(popup, date_pattern="yyyy-mm-dd", width=12)
         date_picker.pack(pady=10)
-        tk.Button(
+        ttk.Button(
             popup,
             text="Confirm",
             command=lambda: [
@@ -259,8 +267,11 @@ class OrdersManager:
                 popup.destroy(),
                 self.update_orders_list(),
             ],
+            style="Action.TButton",
         ).pack(pady=5)
-        tk.Button(popup, text="Cancel", command=popup.destroy).pack(pady=5)
+        ttk.Button(
+            popup, text="Cancel", command=popup.destroy, style="Action.TButton"
+        ).pack(pady=5)
 
     def on_date_range_filter(self, event=None):
         """Handle date range filter selection and show/hide custom date inputs."""
@@ -356,19 +367,18 @@ class OrdersManager:
                 f"{idx}. Version: {version}, Order: {order}, Date: {test_date}"
             )
 
-            row_frame = tk.Frame(self.orders_inner_frame)
+            row_frame = ttk.Frame(self.orders_inner_frame)
             row_frame.grid(row=idx - start_idx, column=0, sticky="w", padx=5, pady=2)
 
-            chk = tk.Checkbutton(
-                row_frame, text=display_text, variable=var, anchor="w", width=40
-            )
+            chk = ttk.Checkbutton(row_frame, text=display_text, variable=var, width=40)
             chk.pack(side=tk.LEFT)
 
-            btn_view = tk.Button(
+            btn_view = ttk.Button(
                 row_frame,
-                text="     👁️",
+                text=" 👁️",
                 width=3,
                 command=lambda v=version, o=order: self.show_metadata_popup(v, o),
+                style="Action.TButton",
             )
             btn_view.pack(side=tk.LEFT, padx=(10, 0))
 
@@ -377,11 +387,11 @@ class OrdersManager:
         self.orders_canvas.configure(scrollregion=self.orders_canvas.bbox("all"))
         self.orders_canvas.yview_moveto(0)
 
-        self.page_info.config(text=f"Page {self.current_page}/{self.total_pages}")
+        self.page_info.configure(text=f"Page {self.current_page}/{self.total_pages}")
 
-        self.prev_btn.config(state=tk.NORMAL if self.current_page > 1 else tk.DISABLED)
-        self.next_btn.config(
-            state=tk.NORMAL if self.current_page < self.total_pages else tk.DISABLED
+        self.prev_btn.configure(state="normal" if self.current_page > 1 else "disabled")
+        self.next_btn.configure(
+            state="normal" if self.current_page < self.total_pages else "disabled"
         )
 
         current_page_orders = [
@@ -411,16 +421,18 @@ class OrdersManager:
         popup.title(f"Metadata - {order}")
         popup.geometry("350x250")
         popup.resizable(False, False)
-        tk.Label(
+        ttk.Label(
             popup,
             text=f"Metadata for Order {order} ({version})",
             font=("Arial", 11, "bold"),
         ).pack(pady=8)
         text = tk.Text(popup, width=40, height=10, wrap="word")
         text.insert("1.0", info)
-        text.config(state="disabled")
+        text.configure(state="disabled")
         text.pack(padx=8, pady=8)
-        tk.Button(popup, text="Close", command=popup.destroy).pack(pady=5)
+        ttk.Button(
+            popup, text="Close", command=popup.destroy, style="Action.TButton"
+        ).pack(pady=5)
 
     def on_items_per_page_changed(self, event=None):
         """Handle changes to items per page."""
