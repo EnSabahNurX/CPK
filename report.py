@@ -297,7 +297,7 @@ def show_report(self):
                 mean,
                 color="#7CE04A",
                 linewidth=2.5,
-                label="Mean",
+                label="Nominal",
                 linestyle="-",
             )
             ax.set_title(f"Pressure Curves - Temperature {temp}", fontsize=12, pad=10)
@@ -347,7 +347,7 @@ def show_report(self):
                     mean,
                     color="#7CE04A",
                     linewidth=2.5,
-                    label="Mean",
+                    label="Nominal",
                     linestyle="-",
                 )
                 ax.set_title(
@@ -399,7 +399,7 @@ def show_report(self):
                 tags=("max",),
             )
             table.insert(
-                "", "end", values=["Mean (bar)"] + format_row(mean), tags=("mean",)
+                "", "end", values=["Nominal (bar)"] + format_row(mean), tags=("mean",)
             )
             table.insert(
                 "",
@@ -451,7 +451,7 @@ def show_report(self):
             table_data[["RT", "LT", "HT"].index(temp)] = [
                 ("Time (ms)", ["Time (ms)"] + ms_points_str),
                 ("Maximum (bar)", ["Maximum (bar)"] + format_row(limits_max)),
-                ("Mean (bar)", ["Mean (bar)"] + format_row(mean)),
+                ("Nominal (bar)", ["Nominal (bar)"] + format_row(mean)),
                 ("Minimum (bar)", ["Minimum (bar)"] + format_row(limits_min)),
             ]
 

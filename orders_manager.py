@@ -357,7 +357,7 @@ class OrdersManager:
         paginated_orders = orders_list[start_idx:end_idx]
 
         for idx, (version, order, test_date) in enumerate(
-                paginated_orders, start=start_idx + 1
+            paginated_orders, start=start_idx + 1
         ):
             key = (version, order)
             if key not in self.order_vars:
@@ -368,10 +368,15 @@ class OrdersManager:
             )
 
             row_frame = ttk.Frame(self.orders_inner_frame)
-            row_frame.grid(row=idx - start_idx, column=0, sticky="w", padx=5, pady=2)
+            row_frame.grid(row=idx - start_idx, column=0, sticky="nsew", padx=5, pady=2)
 
-            chk = ttk.Checkbutton(row_frame, text=display_text, variable=var, width=40)
-            chk.pack(side=tk.LEFT)
+            chk = ttk.Checkbutton(
+                row_frame,
+                text=display_text,
+                variable=var,
+                width=45,  # Aumentando a largura
+            )
+            chk.pack(side=tk.LEFT, fill="x", expand=True)  # Permitindo expansão
 
             btn_view = ttk.Button(
                 row_frame,
@@ -496,9 +501,9 @@ class OrdersManager:
 
         # Check for version conflicts
         if (
-                self.workplace_manager.workplace_data
-                and self.workplace_manager.workplace_data[0]["version"]
-                not in set(version for version, _ in selected_orders)
+            self.workplace_manager.workplace_data
+            and self.workplace_manager.workplace_data[0]["version"]
+            not in set(version for version, _ in selected_orders)
         ):
             messagebox.showerror(
                 "Error",
