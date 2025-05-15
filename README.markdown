@@ -1,4 +1,4 @@
-# Ballistic Tests Reporting Application
+# Ballistic Tests Reporting Application (CPK)
 
 ## Overview
 The **Ballistic Tests Reporting Application** is a Python-based desktop application designed to generate and visualize reports for ballistic test data, specifically pressure curves across different temperatures (Room Temperature [RT], Low Temperature [LT], and High Temperature [HT]). The application provides a user-friendly Tkinter GUI to display interactive graphs and tables, with options to export reports to PDF and Excel formats. It processes test data stored in JSON format, groups it by temperature, and visualizes pressure measurements over time, including maximum, minimum, and mean values, with dynamic resizing and scrolling capabilities.
