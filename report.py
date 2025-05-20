@@ -248,7 +248,7 @@ def show_report(self):
                 min_dict = limits.get("minimums", {})
                 limits_max = [max_dict.get(str(ms), np.nan) for ms in ms_points]
                 limits_min = [min_dict.get(str(ms), np.nan) for ms in ms_points]
-            except Exception as e:
+            except Exception:
                 limits_max = [np.nan] * len(ms_points)
                 limits_min = [np.nan] * len(ms_points)
 
@@ -418,7 +418,7 @@ def show_report(self):
             style.configure("Treeview.Heading", font=("Helvetica", 6, "bold"))
 
             def update_table_columns(
-                    event=None, tf=temp_frame, tbl=table, cols=table_columns
+                event=None, tf=temp_frame, tbl=table, cols=table_columns
             ):
                 if not tf.winfo_exists():
                     return
@@ -433,15 +433,16 @@ def show_report(self):
 
             temp_frame.bind(
                 "<Configure>",
-                lambda e, tf=temp_frame, tbl=table, cols=table_columns: update_table_columns(
-                    e, tf, tbl, cols
-                ),
+                lambda e,
+                tf=temp_frame,
+                tbl=table,
+                cols=table_columns: update_table_columns(e, tf, tbl, cols),
             )
             temp_frame.after(
                 200,
-                lambda tf=temp_frame, tbl=table, cols=table_columns: update_table_columns(
-                    None, tf, tbl, cols
-                ),
+                lambda tf=temp_frame,
+                tbl=table,
+                cols=table_columns: update_table_columns(None, tf, tbl, cols),
             )
             update_table_columns(tf=temp_frame, tbl=table, cols=table_columns)
 
