@@ -29,6 +29,13 @@ class PlatformApp:
             background="#5bc0de",
         )
         style.map("DatabaseButton.TButton", background=[("active", "#6fd6de")])
+        style.configure(
+            "VersionButton.TButton",
+            font=("Helvetica", 12, "bold"),
+            foreground="black",
+            background="#de7c6f",
+        )
+        style.map("VersionButton.TButton", background=[("active", "#de7c6f")])
 
         # Frame principal
         self.main_frame = ttk.Frame(
@@ -61,7 +68,7 @@ class PlatformApp:
             self.main_frame,
             text="Version Control",
             command=self.open_version_control,
-            style="DatabaseButton.TButton",
+            style="VersionButton.TButton",
             width=20,
         )
         self.btn_version_control.grid(row=2, column=0, pady=10)
