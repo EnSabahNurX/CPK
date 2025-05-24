@@ -1,138 +1,100 @@
+import database_front
 import tkinter as tk
-from tkinter import ttk, messagebox
-import config
-import database
-from orders_manager import OrdersManager
-from workplace_manager import WorkplaceManager
-from tooltip import ToolTip
-from export_database import export_database_to_excel
+from tkinter import ttk
+import ballistic_converter
 
 
-class ExcelToJsonConverter:
-    def __init__(self):
-        self.root = tk.Tk()  # tk.Tk remains as ttk does not provide an equivalent
-        self.root.title("Ballistic Tests Converter")
-        self.root.geometry("1200x700")
-        self.root.minsize(1000, 600)
+class PlatformApp:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Ballistic Converter Platform")
+        self.root.geometry("600x400")
+        self.root.minsize(500, 300)
         self.root.columnconfigure(0, weight=1)
-        self.root.columnconfigure(1, weight=1)
         self.root.rowconfigure(0, weight=1)
 
-        # Configure ttk style for buttons to match original colors
+        # Configuração de estilo ttk
         style = ttk.Style()
         style.configure(
-            "Export.TButton",
-            font=("Helvetica", 10, "bold"),
+            "StartButton.TButton",
+            font=("Helvetica", 12, "bold"),
             foreground="black",
             background="#5cb85c",
         )
-        style.map("Export.TButton", background=[("active", "#6fd66f")])
-        style.configure("Action.TButton", font=("Helvetica", 10, "bold"))
-
-        # Left Frame (Database)
-        self.frame_db = ttk.Frame(self.root, relief="groove", padding=10, borderwidth=2)
-        self.frame_db.grid(row=0, column=0, sticky="nsew")
-        self.frame_db.columnconfigure(0, weight=1)
-        self.frame_db.rowconfigure(5, weight=1)
-
-        # Database Title Frame
-        title_frame = ttk.Frame(self.frame_db)
-        title_frame.grid(row=0, column=0, sticky="ew")
-        title_frame.columnconfigure(0, weight=1)
-        title_frame.columnconfigure(1, minsize=150)
-
-        self.label_database_title = ttk.Label(
-            title_frame, text="Database", font=("Helvetica", 14, "bold")
+        style.map("StartButton.TButton", background=[("active", "#6fd66f")])
+        style.configure(
+            "DatabaseButton.TButton",
+            font=("Helvetica", 12, "bold"),
+            foreground="black",
+            background="#5bc0de",
         )
-        self.label_database_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
+        style.map("DatabaseButton.TButton", background=[("active", "#6fd6de")])
 
-        self.btn_export_db = ttk.Button(
-            title_frame,
-            text="Export Database",
-            command=self.export_database,
-            style="Export.TButton",
-            width=15,
+        # Frame principal
+        self.main_frame = ttk.Frame(
+            self.root, relief="groove", padding=10, borderwidth=2
         )
-        self.btn_export_db.grid(row=0, column=1, sticky="e", padx=(0, 5))
-        ToolTip(self.btn_export_db, "Export entire database to Excel")
+        self.main_frame.grid(row=0, column=0, sticky="nsew")
+        self.main_frame.columnconfigure(0, weight=1)
 
-        # Orders Input
-        ttk.Label(self.frame_db, text="Enter order numbers separated by commas:").grid(
-            row=1, column=0, sticky="w", pady=(10, 5)
+        # Botão para iniciar o conversor
+        self.btn_start_converter = ttk.Button(
+            self.main_frame,
+            text="Start Ballistic Converter",
+            command=self.start_converter,
+            style="StartButton.TButton",
+            width=20,
         )
-        self.entry_orders = ttk.Entry(self.frame_db)
-        self.entry_orders.grid(row=2, column=0, sticky="ew", pady=5)
+        self.btn_start_converter.grid(row=0, column=0, pady=10)
 
-        # Process and Remove Orders Buttons Side by Side
-        btns_frame = ttk.Frame(self.frame_db)
-        btns_frame.grid(row=3, column=0, sticky="ew", pady=5)
-        btns_frame.columnconfigure((0, 1), weight=1)
-
-        self.btn_process = ttk.Button(
-            btns_frame,
-            text="Add Entered Orders",
-            command=self.process_orders,
-            style="Action.TButton",
-            width=15,
+        # Botão para abrir o Database
+        self.btn_open_database = ttk.Button(
+            self.main_frame,
+            text="Database",
+            command=self.open_database,
+            style="DatabaseButton.TButton",
+            width=20,
         )
-        self.btn_process.grid(row=0, column=0, sticky="ew", padx=(0, 5))
-        ToolTip(self.btn_process, "Process and add orders to the database")
+        self.btn_open_database.grid(row=1, column=0, pady=10)
 
-        self.btn_remove_orders = ttk.Button(
-            btns_frame,
-            text="Remove Entered Orders",
-            command=self.remove_orders_by_input,
-            style="Action.TButton",
-            width=15,
+        self.btn_version_control = ttk.Button(
+            self.main_frame,
+            text="Version Control",
+            command=self.open_version_control,
+            style="DatabaseButton.TButton",
+            width=20,
         )
-        self.btn_remove_orders.grid(row=0, column=1, sticky="ew", padx=(5, 0))
-        ToolTip(self.btn_remove_orders, "Remove specified orders from the database")
+        self.btn_version_control.grid(row=2, column=0, pady=10)
 
-        self.status_label = ttk.Label(
-            self.frame_db, text="", anchor="w", foreground="green"
-        )
-        self.status_label.grid(row=4, column=0, sticky="ew", pady=(5, 10))
+    def start_converter(self):
+        """Cria uma nova janela e mantém o foco nela."""
+        new_window = tk.Toplevel(self.root)
+        ballistic_converter.ExcelToJsonConverter(new_window)
 
-        # Initializations
-        self.json_file = config.JSON_FILE
-        self.excel_folder = config.EXCEL_FOLDER
-        database.create_daily_backup(self.json_file)
+        self.root.iconify()
+        new_window.focus_set()
 
-        # Instantiate Managers
-        self.workplace_manager = WorkplaceManager(self.root, self.json_file)
-        self.orders_manager = OrdersManager(
-            self.frame_db, self.json_file, self.excel_folder, self.workplace_manager
-        )
+    def open_database(self):
+        """Cria uma nova janela apenas para o frame de database e mantém o foco nela."""
 
-        self.orders_manager.update_orders_list()
-        self.root.mainloop()
+        new_window = tk.Toplevel(self.root)
+        database_front.DatabaseFront(new_window)
 
-    def process_orders(self):
-        """Process orders entered by the user."""
-        orders_input = self.entry_orders.get().strip()
-        success, message = self.orders_manager.process_orders(orders_input)
-        if success:
-            self.entry_orders.delete(0, tk.END)
-            self.status_label.configure(text=message)
-            messagebox.showinfo("Success", message)
-        else:
-            messagebox.showerror("Error", message)
+        self.root.iconify()
+        new_window.focus_set()
 
-    def remove_orders_by_input(self):
-        """Remove orders specified in the input field."""
-        orders_input = self.entry_orders.get().strip()
-        success, message = self.orders_manager.remove_orders_by_input(orders_input)
-        if success:
-            self.status_label.configure(text=message)
-            messagebox.showinfo("Success", message)
-            self.entry_orders.delete(0, tk.END)
-        else:
-            messagebox.showwarning("Warning", message)
+    def open_version_control(self):
+        """Abrir a janela de controle de versões."""
+        import versions
 
-    def export_database(self):
-        """Export the database to Excel."""
-        export_database_to_excel(self)
+        new_window = tk.Toplevel(self.root)
+        versions.VersionManager(new_window)
+
+        self.root.iconify()
+        new_window.focus_set()
 
 
 if __name__ == "__main__":
-    ExcelToJsonConverter()
+    root = tk.Tk()
+    app = PlatformApp(root)
+    root.mainloop()

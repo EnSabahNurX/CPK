@@ -1,0 +1,130 @@
+import tkinter as tk
+from tkinter import ttk, messagebox
+import config
+import database
+from tooltip import ToolTip
+from export_database import export_database_to_excel
+
+
+class DatabaseFront:
+    def __init__(self, root):
+        self.root = root
+        self.root.title("Database Manager")
+        self.root.geometry("600x400")
+        self.root.minsize(500, 300)
+        self.root.columnconfigure(0, weight=1)
+        self.root.rowconfigure(0, weight=1)
+
+        # Configure ttk style for buttons to match original colors
+        style = ttk.Style()
+        style.configure(
+            "Export.TButton",
+            font=("Helvetica", 10, "bold"),
+            foreground="black",
+            background="#5cb85c",
+        )
+        style.map("Export.TButton", background=[("active", "#6fd66f")])
+        style.configure("Action.TButton", font=("Helvetica", 10, "bold"))
+
+        # Frame de Database
+        self.frame_db = ttk.Frame(self.root, relief="groove", padding=10, borderwidth=2)
+        self.frame_db.grid(row=0, column=0, sticky="nsew")
+        self.frame_db.columnconfigure(0, weight=1)
+        self.frame_db.rowconfigure(5, weight=1)
+
+        # Título Database
+        title_frame = ttk.Frame(self.frame_db)
+        title_frame.grid(row=0, column=0, sticky="ew")
+        title_frame.columnconfigure(0, weight=1)
+        title_frame.columnconfigure(1, minsize=150)
+
+        self.label_database_title = ttk.Label(
+            title_frame, text="Database", font=("Helvetica", 14, "bold")
+        )
+        self.label_database_title.grid(row=0, column=0, sticky="w", pady=(0, 10))
+
+        self.btn_export_db = ttk.Button(
+            title_frame,
+            text="Export Database",
+            command=self.export_database,
+            style="Export.TButton",
+            width=15,
+        )
+        self.btn_export_db.grid(row=0, column=1, sticky="e", padx=(0, 5))
+        ToolTip(self.btn_export_db, "Export entire database to Excel")
+
+        # Entrada de pedidos
+        ttk.Label(self.frame_db, text="Enter order numbers separated by commas:").grid(
+            row=1, column=0, sticky="w", pady=(10, 5)
+        )
+        self.entry_orders = ttk.Entry(self.frame_db)
+        self.entry_orders.grid(row=2, column=0, sticky="ew", pady=5)
+
+        # Botões lado a lado
+        btns_frame = ttk.Frame(self.frame_db)
+        btns_frame.grid(row=3, column=0, sticky="ew", pady=5)
+        btns_frame.columnconfigure((0, 1), weight=1)
+
+        self.btn_process = ttk.Button(
+            btns_frame,
+            text="Add Entered Orders",
+            command=self.process_orders,
+            style="Action.TButton",
+            width=15,
+        )
+        self.btn_process.grid(row=0, column=0, sticky="ew", padx=(0, 5))
+        ToolTip(self.btn_process, "Process and add orders to the database")
+
+        self.btn_remove_orders = ttk.Button(
+            btns_frame,
+            text="Remove Entered Orders",
+            command=self.remove_orders_by_input,
+            style="Action.TButton",
+            width=15,
+        )
+        self.btn_remove_orders.grid(row=0, column=1, sticky="ew", padx=(5, 0))
+        ToolTip(self.btn_remove_orders, "Remove specified orders from the database")
+
+        self.status_label = ttk.Label(
+            self.frame_db, text="", anchor="w", foreground="green"
+        )
+        self.status_label.grid(row=4, column=0, sticky="ew", pady=(5, 10))
+
+        # Inicializações
+        self.json_file = config.JSON_FILE
+        self.excel_folder = config.EXCEL_FOLDER
+        database.create_daily_backup(self.json_file)
+
+    def process_orders(self):
+        """Processa pedidos inseridos pelo usuário diretamente na Database."""
+        orders_input = self.entry_orders.get().strip()
+        success, message = database.process_orders(
+            orders_input, self.json_file, self.excel_folder
+        )
+        if success:
+            self.entry_orders.delete(0, tk.END)
+            self.status_label.configure(text=message)
+            messagebox.showinfo("Success", message)
+        else:
+            messagebox.showerror("Error", message)
+
+    def remove_orders_by_input(self):
+        """Remove pedidos diretamente da Database."""
+        orders_input = self.entry_orders.get().strip()
+        success, message = database.remove_orders(orders_input, self.json_file)
+        if success:
+            self.status_label.configure(text=message)
+            messagebox.showinfo("Success", message)
+            self.entry_orders.delete(0, tk.END)
+        else:
+            messagebox.showwarning("Warning", message)
+
+    def export_database(self):
+        """Exporta a Database para Excel."""
+        export_database_to_excel(self)
+
+
+if __name__ == "__main__":
+    root = tk.Tk()
+    DatabaseFront(root)
+    root.mainloop()

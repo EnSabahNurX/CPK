@@ -52,14 +52,14 @@ class WorkplaceManager:
         self.btn_report.grid(row=0, column=1, sticky="e", padx=(0, 5))
         ToolTip(self.btn_report, "Generate a report of workplace tests")
 
-        self.btn_close_main = ttk.Button(
-            btn_report_frame,
-            text="Close",
-            command=self.close_application,
-            style="Close.TButton",
-        )
-        self.btn_close_main.grid(row=0, column=2, sticky="e")
-        ToolTip(self.btn_close_main, "Close the application")
+        # self.btn_close_main = ttk.Button(
+        #     btn_report_frame,
+        #     text="Close",
+        #     command=self.close_application,
+        #     style="Close.TButton",
+        # )
+        # self.btn_close_main.grid(row=0, column=2, sticky="e")
+        # ToolTip(self.btn_close_main, "Close the application")
 
         self.workplace_title = ttk.Label(
             self.workplace_frame, text="Workplace", font=("Helvetica", 14, "bold")
