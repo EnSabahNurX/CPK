@@ -368,15 +368,10 @@ class OrdersManager:
             )
 
             row_frame = ttk.Frame(self.orders_inner_frame)
-            row_frame.grid(row=idx - start_idx, column=0, sticky="nsew", padx=5, pady=2)
+            row_frame.grid(row=idx - start_idx, column=0, sticky="w", padx=5, pady=2)
 
-            chk = ttk.Checkbutton(
-                row_frame,
-                text=display_text,
-                variable=var,
-                width=45,  # Aumentando a largura
-            )
-            chk.pack(side=tk.LEFT, fill="x", expand=True)  # Permitindo expansão
+            chk = ttk.Checkbutton(row_frame, text=display_text, variable=var, width=40)
+            chk.pack(side=tk.LEFT)
 
             btn_view = ttk.Button(
                 row_frame,

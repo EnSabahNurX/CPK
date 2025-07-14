@@ -96,7 +96,7 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
 
             # Write table data
             for row_idx, (row_label, row_data) in enumerate(
-                    table_data[idx], start=header_row + 1
+                table_data[idx], start=header_row + 1
             ):
                 ws.append(row_data)  # row_data includes label and values
                 for col_idx in range(1, len(row_data) + 1):
@@ -147,10 +147,10 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
 def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
     try:
         if (
-                not data_by_temp
-                or not table_data
-                or not ms_points_dict
-                or not os.path.exists(json_file)
+            not data_by_temp
+            or not table_data
+            or not ms_points_dict
+            or not os.path.exists(json_file)
         ):
             raise ValueError("Invalid input data or JSON file not found")
 

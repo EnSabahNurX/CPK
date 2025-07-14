@@ -12,7 +12,7 @@ REM Compila o main.py para um executável sem terminal
 REM Verifica se o .exe foi criado e copia para a pasta atual
 if exist dist\main.exe (
     copy /Y dist\main.exe .
-    ren main.exe Inflator_Lab.exe
+    ren main.exe CPK.exe
     echo ✅ Executável main.exe copiado para a pasta atual.
 ) else (
     echo ❌ Erro: O executável não foi criado.

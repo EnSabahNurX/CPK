@@ -260,9 +260,9 @@ def get_orders_list(json_file, selected_version, start_date, end_date):
         orders_list = []
         for version, orders in data.items():
             if (
-                    selected_version
-                    and selected_version.lower() != "all"
-                    and version != selected_version
+                selected_version
+                and selected_version.lower() != "all"
+                and version != selected_version
             ):
                 continue
             for order, details in orders.items():
