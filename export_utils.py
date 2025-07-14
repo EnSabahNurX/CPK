@@ -107,7 +107,7 @@ def export_to_excel(data_by_temp, table_data, ms_points_dict):
                         cell.fill = time_fill
                     elif row_label == "Maximum (bar)":
                         cell.fill = max_fill
-                    elif row_label == "Nominal (bar)":
+                    elif row_label == "Mean (bar)":
                         cell.fill = mean_fill
                     elif row_label == "Minimum (bar)":
                         cell.fill = min_fill
@@ -313,7 +313,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
                 mean,
                 color="#7CE04A",
                 linewidth=2,
-                label="Nominal",
+                label="Mean",
                 linestyle="-",
             )
             ax_graph.set_title(
@@ -351,7 +351,7 @@ def export_to_pdf(data_by_temp, table_data, ms_points_dict, json_file):
                         table_cell_colors.append(["#f0f0f0"] * len(pressure_points))
                     elif label == "Maximum (bar)":
                         table_cell_colors.append(["#ffcccc"] * len(pressure_points))
-                    elif label == "Nominal (bar)":
+                    elif label == "Mean (bar)":
                         table_cell_colors.append(["#7CE04A"] * len(pressure_points))
                     elif label == "Minimum (bar)":
                         table_cell_colors.append(["#cce6ff"] * len(pressure_points))
